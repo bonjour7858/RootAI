@@ -30,10 +30,10 @@
                 <span style="font-size: 0.8rem; color: #38bdf8;">● En ligne</span>
             </div>
             <div class="chat-box" id="chat-box">
-                <div class="message bot">Bienvenue sur RootAI ! Écrivez une question ou tapez `/image un dragon` pour créer une image. 🚀</div>
+                <div class="message bot">Bienvenue sur RootAI ! Posez vos questions ou tapez `/image une ville du futur` pour générer une image. 🚀</div>
             </div>
             <div class="chat-input-area">
-                <input type="text" id="user-input" placeholder="Écrivez un message..." onkeypress="handleKeyPress(event)">
+                <input type="text" id="user-input" placeholder="Posez une question ou tapez /image..." onkeypress="handleKeyPress(event)">
                 <button onclick="sendMessage()">Envoyer</button>
             </div>
         </div>
@@ -43,56 +43,67 @@
     <main id="page-image" class="page">
         <div class="card-box" style="text-align: center;">
             <h2>Générateur d'Images IA 🎨</h2>
-            <p style="color:#8b949e; margin-top: 10px;">Décrivez votre idée en détails :</p>
-            <div class="form-group">
-                <input type="text" id="img-prompt-input" placeholder="Ex: Une voiture de sport rouge sur la lune">
+            <p style="color:#8b949e; margin-top: 10px;">Décrivez précisément ce que vous voulez visualiser :</p>
+            <div class="form-group" style="margin-top:15px;">
+                <input type="text" id="img-prompt-input" placeholder="Ex: Un chat cosmonaute sur Mars, style synthwave">
                 <button class="btn-action" onclick="triggerImageGen()">Générer l'image</button>
             </div>
         </div>
     </main>
 
-    <!-- 3. ABONNEMENT PREMIUM (3€) -->
+    <!-- 3. ABONNEMENT PREMIUM (3€/MOIS) -->
     <main id="page-premium" class="page">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #a855f7;">Passer à RootAI Premium</h1>
+            <p style="color: #8b949e;">Libérez tout le potentiel de la plateforme.</p>
+        </div>
         <div class="card-box" style="max-width:380px; border:2px solid #a855f7; text-align:center;">
-            <h2 style="color:#a855f7;">Pass Offre VIP</h2>
+            <h2 style="color:#a855f7;">Pass VIP</h2>
             <h1 style="font-size: 2.5rem; margin: 15px 0; color:white;">3,00 € <span style="font-size:1rem; color:#8b949e;">/ mois</span></h1>
-            <button class="btn-action" style="background: linear-gradient(45deg, #a855f7, #ec4899); width:100%;" onclick="alert('Abonnement activé !')">S'abonner (3,00 €/mois)</button>
+            <ul style="list-style:none; text-align:left; margin-bottom:20px; line-height:2; color:#c9d1d9;">
+                <li>⚡ <strong>IA Ultra-Intelligente sans limite</strong></li>
+                <li>🎨 <strong>Génération d'images HD illimitée</strong></li>
+                <li>🎫 <strong>Support prioritaire & badge VIP</strong></li>
+            </ul>
+            <button class="btn-action" style="background: linear-gradient(45deg, #a855f7, #ec4899); width:100%; font-size:1.05rem;" onclick="alert('Paiement simulé ! Vous êtes maintenant Premium 🎉')">S'abonner (3,00 €/mois)</button>
         </div>
     </main>
 
-    <!-- 4. LISTE DES TICKETS SUPPORT -->
+    <!-- 4. CENTRE DE SUPPORT & TICKETS -->
     <main id="page-support" class="page">
         <div class="card-box">
             <h2>Centre de Support 🎫</h2>
+            <p style="color:#8b949e; font-size:0.9rem; margin-bottom:15px;">Un problème ? Ouvrez un ticket et l'administrateur vous répondra directement.</p>
+            
             <form class="form-group" onsubmit="createTicket(event)">
-                <input type="text" id="ticket-subject" placeholder="Sujet du ticket" required>
+                <input type="text" id="ticket-subject" placeholder="Sujet de votre demande" required>
                 <select id="ticket-priority">
                     <option value="Basse">Priorité : Basse</option>
                     <option value="Haute">Priorité : Haute ⚡</option>
                 </select>
-                <textarea id="ticket-desc" rows="3" placeholder="Description de votre demande..." required></textarea>
-                <button type="submit" class="btn-action">Ouvrir le ticket</button>
+                <textarea id="ticket-desc" rows="3" placeholder="Décrivez votre problème en détails..." required></textarea>
+                <button type="submit" class="btn-action">Créer le ticket</button>
             </form>
 
-            <h3 style="margin-top:30px; padding-bottom:10px; border-bottom:1px solid #30363d;">Mes Tickets (Cliquez pour ouvrir)</h3>
+            <h3 style="margin-top:30px; padding-bottom:10px; border-bottom:1px solid #30363d;">Vos Tickets (Cliquez pour ouvrir la discussion)</h3>
             <div id="ticket-list" style="margin-top:15px;"></div>
         </div>
     </main>
 
-    <!-- 5. PAGE INDIVIDUELLE D'UN TICKET (ACCÈS SÉCURISÉ) -->
+    <!-- 5. PAGE DÉDIÉE D'UN TICKET (PRIVÉE : AUTEUR & ADMIN SEULEMENT) -->
     <main id="page-ticket-detail" class="page">
         <div class="card-box" style="max-width:750px; width:100%;">
-            <button onclick="showPage('support')" style="background:none; border:none; color:#58a6ff; cursor:pointer; margin-bottom:15px;">← Retour à la liste</button>
+            <button onclick="showPage('support')" style="background:none; border:none; color:#58a6ff; cursor:pointer; margin-bottom:15px; font-weight:bold;">← Retour à la liste des tickets</button>
             
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #30363d; padding-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #30363d; padding-bottom:15px; flex-wrap:wrap; gap:10px;">
                 <div>
-                    <h2>Ticket #<span id="detail-ticket-id"></span></h2>
-                    <h3 id="detail-ticket-subject" style="color:#8b949e;"></h3>
-                    <p style="font-size:0.8rem; color:#58a6ff;">Utilisateur : <span id="detail-ticket-user"></span></p>
+                    <h2 style="margin:0;">Ticket #<span id="detail-ticket-id"></span></h2>
+                    <h3 id="detail-ticket-subject" style="color:#8b949e; margin-top:4px;"></h3>
+                    <p style="font-size:0.8rem; color:#58a6ff; margin-top:2px;">Auteur : <span id="detail-ticket-user"></span></p>
                 </div>
                 <div>
-                    <label style="font-size:0.8rem; display:block; color:#8b949e;">Statut (Admin) :</label>
-                    <select id="detail-ticket-status" onchange="updateTicketStatus()" style="padding:6px; background:#0d1117; color:white; border:1px solid #30363d; border-radius:4px;">
+                    <label style="font-size:0.8rem; display:block; color:#8b949e; margin-bottom:4px;">Statut (Modifiable par l'Admin) :</label>
+                    <select id="detail-ticket-status" onchange="updateTicketStatus()" style="padding:6px 10px; background:#0d1117; color:white; border:1px solid #30363d; border-radius:4px;">
                         <option value="En attente">En attente</option>
                         <option value="En cours">En cours</option>
                         <option value="Résolu">Résolu</option>
@@ -101,31 +112,31 @@
                 </div>
             </div>
 
-            <!-- Fil de conversation -->
-            <div id="ticket-messages-box" style="height:300px; overflow-y:auto; margin:20px 0; padding:10px; background:#0d1117; border-radius:8px; border:1px solid #30363d;"></div>
+            <!-- Fil de discussion privé -->
+            <div id="ticket-messages-box" style="height:320px; overflow-y:auto; margin:20px 0; padding:15px; background:#0d1117; border-radius:8px; border:1px solid #30363d;"></div>
 
-            <!-- Ajouter une réponse -->
+            <!-- Réponse -->
             <div style="display:flex; gap:10px;">
-                <input type="text" id="ticket-reply-input" placeholder="Écrire une réponse..." style="flex:1; padding:10px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:white;">
+                <input type="text" id="ticket-reply-input" placeholder="Écrire un message dans ce ticket..." style="flex:1; padding:10px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:white;">
                 <button onclick="addTicketReply()" class="btn-action">Envoyer</button>
             </div>
         </div>
     </main>
 
-    <!-- 6. CONNEXION -->
+    <!-- 6. ESPACE CONNEXION -->
     <main id="page-auth" class="page">
         <div class="card-box" style="max-width: 400px; text-align: center;">
-            <h2>Espace Connexion</h2>
+            <h2>Espace Membre</h2>
             <form class="form-group" onsubmit="handleAuth(event)">
-                <input type="email" id="auth-email" placeholder="Votre adresse email" required>
+                <input type="email" id="auth-email" placeholder="Adresse email" required>
                 <input type="password" placeholder="Mot de passe" required>
-                <button type="submit" class="btn-action">Se connecter</button>
+                <button type="submit" class="btn-action">Se connecter / S'inscrire</button>
             </form>
         </div>
     </main>
 
     <footer>
-        <p>&copy; 2026 RootAI - Plateforme complète</p>
+        <p>&copy; 2026 RootAI - Tous droit protégé</p>
     </footer>
 
     <script src="script.js"></script>
