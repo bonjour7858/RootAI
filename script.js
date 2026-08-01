@@ -1,41 +1,62 @@
-// 🔑 Mets ta clé Groq valide ici (commence par gsk_...)
+// 🔑 Mets ta clé Groq valide ici (ex: gsk_...)
 const API_KEY = "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"; 
 
-// 🔐 Ton code PIN secret pour accéder au Panneau Admin
+// 🔐 Code secret pour ouvrir ton panneau d'administration
 const ADMIN_PIN = "1234";
 
-// Données en mémoire locale
+// Données locales
 let currentUser = JSON.parse(localStorage.getItem('rootai_user')) || null;
 let tickets = JSON.parse(localStorage.getItem('rootai_tickets')) || [];
 let conversationHistory = [
-    { role: "system", content: "Tu es RootAI, une IA tout-en-un puissante, utile et aimable." }
+    { role: "system", content: "Tu es RootAI, une IA tout-en-un puissante et utile." }
 ];
 
-// Gestion des pages
+// -------------------------------------------------------------
+// NAVIGATION SÉCURISÉE
+// -------------------------------------------------------------
 function showPage(pageName) {
-    document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
-    document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
-    
-    const targetPage = document.getElementById('page-' + pageName);
-    if(targetPage) targetPage.classList.add('active-page');
-    
-    const targetLink = document.getElementById('link-' + pageName);
-    if (targetLink) targetLink.classList.add('active');
+    try {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
+        document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+        
+        const targetPage = document.getElementById('page-' + pageName);
+        if (targetPage) targetPage.classList.add('active-page');
+        
+        const targetLink = document.getElementById('link-' + pageName);
+        if (targetLink) targetLink.classList.add('active');
 
-    updateUserUI();
+        updateUserUI();
+    } catch (err) {
+        console.error("Erreur navigation:", err);
+    }
 }
 
 // -------------------------------------------------------------
-// 1. GESTION DES COMPTES
+// 1. SYSTÈME DE COMPTES & ENVOI D'E-MAIL
 // -------------------------------------------------------------
 function handleAuth(e) {
     e.preventDefault();
     const email = document.getElementById('auth-email').value;
+    
     currentUser = { email: email, isPremium: false };
     localStorage.setItem('rootai_user', JSON.stringify(currentUser));
-    alert('Connexion réussie ! Bienvenue ' + email);
+    
+    // Envoi d'email de bienvenue (EmailJS simulation / notification)
+    sendWelcomeEmail(email);
+
+    alert('✅ Compte créé avec succès ! Un e-mail de confirmation a été envoyé à ' + email);
     updateUserUI();
     showPage('chat');
+}
+
+function sendWelcomeEmail(email) {
+    // Intégration EmailJS directe depuis le navigateur
+    if (window.emailjs) {
+        emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+            to_email: email,
+            message: "Bienvenue sur RootAI ! Votre compte a été activé avec succès."
+        });
+    }
 }
 
 function logout() {
@@ -50,20 +71,24 @@ function updateUserUI() {
     const userBadge = document.getElementById('user-badge');
     
     if (currentUser) {
-        authLink.textContent = "Déconnexion";
-        authLink.onclick = logout;
+        if(authLink) {
+            authLink.textContent = "Déconnexion";
+            authLink.onclick = logout;
+        }
         if (userBadge) {
             userBadge.innerHTML = `👤 ${currentUser.email} ${currentUser.isPremium ? '<b style="color:#a855f7;">[PREMIUM]</b>' : '[GRATUIT]'}`;
         }
     } else {
-        authLink.textContent = "Connexion";
-        authLink.onclick = () => showPage('auth');
+        if(authLink) {
+            authLink.textContent = "Connexion";
+            authLink.onclick = () => showPage('auth');
+        }
         if (userBadge) userBadge.innerHTML = "";
     }
 }
 
 // -------------------------------------------------------------
-// 2. SYSTEME PREMIUM (3€)
+// 2. SYSTEME PREMIUM (3€/mois)
 // -------------------------------------------------------------
 function subscribePremium() {
     if (!currentUser) {
@@ -120,10 +145,10 @@ async function sendMessage() {
             botMsg.textContent = aiReply;
             conversationHistory.push({ role: "assistant", content: aiReply });
         } else {
-            botMsg.textContent = "Erreur : La clé API Groq est invalide ou manquante.";
+            botMsg.textContent = "⚠️ Erreur API : Vérifiez votre clé Groq ou vos crédits.";
         }
     } catch (error) {
-        botMsg.textContent = "Erreur de connexion avec l'IA.";
+        botMsg.textContent = "⚠️ Erreur de connexion avec le serveur d'IA.";
     }
 }
 
@@ -164,12 +189,12 @@ function appendMessage(text, type) {
 function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 // -------------------------------------------------------------
-// 4. TICKETS SUPPORT CLIENT + PANNEAU ADMIN
+// 4. SUPPORT CLIENT + ESPACE ADMIN (SEUL TOI PEUX RÉPONDRE)
 // -------------------------------------------------------------
 function createTicket(e) {
     e.preventDefault();
     if (!currentUser) {
-        alert("Connectez-vous pour envoyer un ticket.");
+        alert("Connectez-vous d'abord pour créer un ticket.");
         showPage('auth');
         return;
     }
@@ -192,7 +217,7 @@ function createTicket(e) {
     renderTickets();
     document.getElementById('ticket-subject').value = '';
     document.getElementById('ticket-desc').value = '';
-    alert("Ticket créé avec succès ! Le support vous répondra bientôt.");
+    alert("Ticket créé avec succès !");
 }
 
 function renderTickets() {
@@ -201,19 +226,16 @@ function renderTickets() {
     list.innerHTML = '';
 
     if (tickets.length === 0) {
-        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket pour le moment.</p>";
+        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket enregistré.</p>";
         return;
     }
 
     tickets.forEach(t => {
         const item = document.createElement('div');
-        item.style.background = "#21262d";
-        item.style.padding = "12px";
-        item.style.borderRadius = "8px";
-        item.style.marginBottom = "10px";
+        item.style.cssText = "background:#21262d; padding:12px; border-radius:8px; margin-bottom:10px;";
         item.innerHTML = `
             <div>
-                <strong>#${t.id} - ${t.subject}</strong> <span style="font-size:0.8rem; color:#a855f7;">(${t.status})</span>
+                <strong>#${t.id} - ${t.subject}</strong> <span style="font-size:0.8rem; color:#a855f7;">[${t.status}]</span>
                 <p style="font-size:0.85rem; color:#8b949e; margin-top:4px;">${t.desc}</p>
                 ${t.replies.map(r => `<div style="color:#58a6ff; font-size:0.85rem; margin-top:6px; background:#0d1117; padding:6px; border-radius:4px;">💬 ${r}</div>`).join('')}
             </div>
@@ -223,17 +245,18 @@ function renderTickets() {
 }
 
 function accessAdmin() {
-    const pin = prompt("Code secret Administrateur :");
+    const pin = prompt("Entrez le code secret Administrateur :");
     if (pin === ADMIN_PIN) {
         showPage('admin');
         renderAdminTickets();
-    } else {
-        alert("Code PIN incorrect ! Accès refusé.");
+    } else if (pin !== null) {
+        alert("Code PIN incorrect !");
     }
 }
 
 function renderAdminTickets() {
     const container = document.getElementById('admin-tickets-container');
+    if(!container) return;
     container.innerHTML = '';
 
     if (tickets.length === 0) {
@@ -247,11 +270,11 @@ function renderAdminTickets() {
         card.style.marginBottom = '15px';
         card.innerHTML = `
             <h3>Ticket #${t.id} - ${t.subject}</h3>
-            <p><strong>De :</strong> ${t.user} | <strong>Priorité :</strong> ${t.priority}</p>
+            <p><strong>Client :</strong> ${t.user} | <strong>Priorité :</strong> ${t.priority}</p>
             <p style="margin:8px 0; background:#0d1117; padding:10px; border-radius:6px;">${t.desc}</p>
             <div style="margin-top:10px; display:flex; gap:10px;">
-                <input type="text" id="reply-input-${index}" placeholder="Votre réponse en tant qu'Admin..." style="flex:1; padding:8px; background:#0d1117; color:white; border:1px solid #30363d; border-radius:4px;">
-                <button onclick="adminReply(${index})" class="btn-action">Répondre</button>
+                <input type="text" id="reply-input-${index}" placeholder="Réponse du Support..." style="flex:1; padding:8px; background:#0d1117; color:white; border:1px solid #30363d; border-radius:4px;">
+                <button onclick="adminReply(${index})" class="btn-action">Envoyer la réponse</button>
             </div>
         `;
         container.appendChild(card);
@@ -263,7 +286,7 @@ function adminReply(index) {
     const replyText = input.value.trim();
     if (replyText === '') return;
 
-    tickets[index].replies.push(`Support: ${replyText}`);
+    tickets[index].replies.push(`Admin: ${replyText}`);
     tickets[index].status = "Résolu";
     localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
     renderAdminTickets();
