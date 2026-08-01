@@ -3,59 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RootAI - Plateforme IA complète</title>
+    <title>RootAI - Plateforme complète</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- NAVIGATION -->
     <nav>
         <div class="logo" onclick="showPage('chat')">RootAI 🤖</div>
+        <div id="user-badge" style="font-size:0.85rem;"></div>
         <ul class="nav-links">
-            <li><a href="#" id="link-chat" class="active" onclick="showPage('chat')">RootAI Chat</a></li>
-            <li><a href="#" id="link-about" onclick="showPage('about')">À Propos</a></li>
+            <li><a href="#" id="link-chat" class="active" onclick="showPage('chat')">IA Chat</a></li>
+            <li><a href="#" id="link-image" onclick="showPage('image')">🎨 Créer Image</a></li>
             <li><a href="#" id="link-support" onclick="showPage('support')">Support</a></li>
-            <li><a href="#" id="link-premium" class="btn-nav-premium" onclick="showPage('premium')">⭐ Premium</a></li>
+            <li><a href="#" id="link-premium" class="btn-nav-premium" onclick="showPage('premium')">⭐ Premium (3€)</a></li>
+            <li><a href="#" id="link-auth" onclick="showPage('auth')">Connexion</a></li>
+            <li><a href="#" style="color:#ef4444;" onclick="accessAdmin()">🔒 Admin</a></li>
         </ul>
     </nav>
 
-    <!-- CHATBOT TOUT-EN-UN -->
+    <!-- 1. IA CHAT -->
     <main id="page-chat" class="page active-page">
         <div class="chat-container">
             <div class="chat-header">
-                <span>RootAI v2.0 (Texte + Génération d'images)</span>
+                <span>RootAI Chat & Assistance</span>
                 <span style="font-size: 0.8rem; color: #38bdf8;">● En ligne</span>
             </div>
             <div class="chat-box" id="chat-box">
-                <div class="message bot">Bienvenue sur RootAI tout-en-un ! 🚀<br><br>💡 **Astuce :** Posez une question normale, ou écrivez <i>"/image un dragon futuriste"</i> pour générer une image !</div>
+                <div class="message bot">Bonjour ! Posez-moi des questions ou générez une image en écrivant `/image un chat de l'espace`. 🚀</div>
             </div>
             <div class="chat-input-area">
-                <input type="text" id="user-input" placeholder="Écrivez un message ou tapez /image..." onkeypress="handleKeyPress(event)">
+                <input type="text" id="user-input" placeholder="Écrivez un message..." onkeypress="handleKeyPress(event)">
                 <button onclick="sendMessage()">Envoyer</button>
             </div>
         </div>
     </main>
 
-    <!-- À PROPOS -->
-    <main id="page-about" class="page">
-        <div class="card-box">
-            <h1>À propos de RootAI</h1>
-            <p>RootAI combine désormais la puissance du texte et la génération d'images en temps réel !</p>
+    <!-- 2. GÉNÉRATEUR D'IMAGES -->
+    <main id="page-image" class="page">
+        <div class="card-box" style="text-align: center;">
+            <h2>Créateur d'Images IA 🎨</h2>
+            <p style="color:#8b949e; margin-bottom:15px;">Décrivez ce que vous souhaitez visualiser :</p>
+            <div class="form-group">
+                <input type="text" id="img-prompt-input" placeholder="Ex: Une ville cyberpunk la nuit sous la pluie">
+                <button class="btn-action" onclick="generateImage(document.getElementById('img-prompt-input').value, document.getElementById('chat-box')); showPage('chat');">Générer l'image</button>
+            </div>
         </div>
     </main>
 
-    <!-- SUPPORT -->
+    <!-- 3. ABONNEMENT PREMIUM (3€) -->
+    <main id="page-premium" class="page">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 2.2rem; color: #a855f7;">Passer à RootAI Premium</h1>
+            <p style="color: #8b949e;">Débloquez tout le potentiel pour un prix imbattable.</p>
+        </div>
+        <div class="card-box" style="max-width:400px; border:2px solid #a855f7; text-align:center;">
+            <h2 style="color:#a855f7;">Pack Ultra</h2>
+            <h1 style="font-size: 2.5rem; margin: 15px 0; color:white;">3,00 € <span style="font-size:1rem; color:#8b949e;">/ mois</span></h1>
+            <ul style="list-style:none; text-align:left; margin-bottom:20px; color:#c9d1d9;">
+                <li>⚡ **Accès prioritaire à l'IA**</li>
+                <li>🎨 **Génération d'images illimitée**</li>
+                <li>🎫 **Support VIP dédié**</li>
+            </ul>
+            <button class="btn-action" style="background: linear-gradient(45deg, #a855f7, #ec4899); width:100%; font-size:1.1rem;" onclick="subscribePremium()">S'abonner maintenant</button>
+        </div>
+    </main>
+
+    <!-- 4. SUPPORT CLIENT -->
     <main id="page-support" class="page">
         <div class="card-box">
-            <h2>Support technique 🎫</h2>
-            <p>Des questions ? Notre équipe est là pour vous aider.</p>
+            <h2>Centre de Support 🎫</h2>
+            <form class="form-group" onsubmit="createTicket(event)">
+                <input type="text" id="ticket-subject" placeholder="Sujet de votre demande" required>
+                <select id="ticket-priority">
+                    <option value="Basse">Priorité : Basse</option>
+                    <option value="Haute">Priorité : Haute ⚡</option>
+                </select>
+                <textarea id="ticket-desc" rows="4" placeholder="Décrivez votre problème..." required></textarea>
+                <button type="submit" class="btn-action">Créer un ticket</button>
+            </form>
+            <h3 style="margin-top:30px;">Mes Tickets</h3>
+            <div class="ticket-list" id="ticket-list"></div>
         </div>
     </main>
 
-    <!-- PREMIUM -->
-    <main id="page-premium" class="page">
-        <div class="card-box" style="text-align:center;">
-            <h2>Offres Premium</h2>
-            <p>Accédez à une vitesse encore plus rapide et des modèles sans limites.</p>
+    <!-- 5. CONNEXION / INSCRIPTION -->
+    <main id="page-auth" class="page">
+        <div class="card-box" style="max-width: 400px; text-align: center;">
+            <h2>Espace Membre</h2>
+            <form class="form-group" onsubmit="handleAuth(event)">
+                <input type="email" id="auth-email" placeholder="Adresse email" required>
+                <input type="password" placeholder="Mot de passe" required>
+                <button type="submit" class="btn-action">Se Connecter / S'inscrire</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- 6. PANNEAU ADMIN (RESERVE AU PROPRIÉTAIRE) -->
+    <main id="page-admin" class="page">
+        <div style="width:100%; max-width:800px;">
+            <h2>🔒 Panneau d'Administration Support</h2>
+            <p style="color:#8b949e; margin-bottom:20px;">Vous seul pouvez répondre aux tickets ci-dessous :</p>
+            <div id="admin-tickets-container"></div>
         </div>
     </main>
 
@@ -63,7 +112,6 @@
         <p>&copy; 2026 RootAI - Plateforme complète</p>
     </footer>
 
-    <!-- INCLUSION DU JAVASCRIPT -->
     <script src="script.js"></script>
 </body>
 </html>
