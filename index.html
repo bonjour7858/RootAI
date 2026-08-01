@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RootIA - Intelligence Artificielle</title>
+    <title>RootAI - Plateforme d'Intelligence Artificielle</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -13,12 +13,12 @@
             line-height: 1.6;
         }
 
-        /* Barre de navigation */
+        /* Navigation */
         nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 8%;
+            padding: 15px 5%;
             background: #161b22;
             border-bottom: 1px solid #30363d;
             position: sticky;
@@ -26,89 +26,243 @@
             z-index: 100;
         }
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: bold;
             color: #58a6ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
         }
         .nav-links {
             list-style: none;
             display: flex;
-            gap: 20px;
+            gap: 15px;
+            align-items: center;
         }
         .nav-links a {
             color: #8b949e;
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.3s;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s;
         }
-        .nav-links a:hover {
-            color: #58a6ff;
+        .nav-links a:hover, .nav-links a.active {
+            color: #ffffff;
+            background: #21262d;
+        }
+        .btn-nav-premium {
+            background: linear-gradient(45deg, #a855f7, #ec4899) !important;
+            color: white !important;
+            font-weight: bold !important;
         }
 
-        /* Sections principal */
-        section {
-            padding: 80px 8%;
-            min-height: 80vh;
+        /* Gestion des vues (pages) */
+        .page {
+            display: none;
+            padding: 40px 5%;
+            min-height: calc(100vh - 130px);
+        }
+        .page.active-page {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            text-align: center;
         }
 
-        /* Page d'accueil (Hero) */
-        .hero h1 {
-            font-size: 3.5rem;
+        /* --- PAGE 1 : CHATBOT IA --- */
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .chat-header {
+            padding: 15px 20px;
+            background: #21262d;
+            border-bottom: 1px solid #30363d;
+            font-weight: bold;
+            color: #58a6ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+        }
+        .message.bot {
+            background: #21262d;
+            color: #c9d1d9;
+            align-self: flex-start;
+            border: 1px solid #30363d;
+        }
+        .message.user {
+            background: #238636;
+            color: white;
+            align-self: flex-end;
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 15px;
+            background: #161b22;
+            border-top: 1px solid #30363d;
+            gap: 10px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: white;
+            outline: none;
+        }
+        .chat-input-area button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .chat-input-area button:hover { background: #2ea043; }
+
+        /* --- PAGE 2 : CONNEXION & INSCRIPTION --- */
+        .auth-card {
+            background: #161b22;
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .auth-card h2 { margin-bottom: 20px; color: #ffffff; }
+        .google-btn {
+            width: 100%;
+            background: white;
+            color: #333;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
             margin-bottom: 20px;
-            background: linear-gradient(45deg, #58a6ff, #bc8cff);
+            transition: background 0.3s;
+        }
+        .google-btn:hover { background: #e6e6e6; }
+        .separator {
+            margin: 20px 0;
+            color: #8b949e;
+            font-size: 0.85rem;
+            position: relative;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .auth-form input {
+            padding: 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: white;
+            outline: none;
+        }
+        .btn-submit {
+            background: #58a6ff;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-submit:hover { background: #388bfd; }
+
+        /* --- PAGE 3 : ABONNEMENT PREMIUM --- */
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .pricing-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #a855f7, #ec4899);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .hero p {
-            font-size: 1.2rem;
-            color: #8b949e;
-            max-width: 600px;
-            margin-bottom: 30px;
-        }
-        .btn {
-            background: #238636;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        .btn:hover {
-            background: #2ea043;
-        }
-
-        /* Section Fonctionnalités (Grille) */
-        .features-grid {
+        .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
             width: 100%;
-            max-width: 1000px;
-            margin-top: 40px;
+            max-width: 900px;
         }
-        .card {
+        .price-card {
             background: #161b22;
-            padding: 30px;
-            border-radius: 8px;
             border: 1px solid #30363d;
-            text-align: left;
+            border-radius: 12px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
-        .card h3 {
-            color: #58a6ff;
-            margin-bottom: 10px;
+        .price-card.popular {
+            border: 2px solid #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
         }
-        .card p {
-            color: #8b949e;
-            font-size: 0.95rem;
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #a855f7;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
         }
+        .price-title { font-size: 1.5rem; color: white; margin-bottom: 10px; }
+        .price-amount { font-size: 2.5rem; font-weight: bold; color: white; margin-bottom: 20px; }
+        .price-amount span { font-size: 1rem; color: #8b949e; }
+        .features-list { list-style: none; margin-bottom: 30px; flex: 1; }
+        .features-list li { margin-bottom: 12px; color: #c9d1d9; display: flex; align-items: center; gap: 8px; }
+        .btn-plan {
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn-free { background: #21262d; color: white; }
+        .btn-premium { background: linear-gradient(45deg, #a855f7, #ec4899); color: white; }
 
-        /* Footer */
         footer {
             text-align: center;
             padding: 20px;
@@ -120,51 +274,140 @@
 </head>
 <body>
 
-    <!-- Menu de Navigation -->
+    <!-- Barre de Navigation -->
     <nav>
-        <div class="logo">RootIA 🤖</div>
+        <div class="logo" onclick="showPage('chat')">RootAI 🤖</div>
         <ul class="nav-links">
-            <li><a href="#accueil">Accueil</a></li>
-            <li><a href="#features">Fonctionnalités</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="#" id="link-chat" class="active" onclick="showPage('chat')">RootAI Chat</a></li>
+            <li><a href="#" id="link-premium" class="btn-nav-premium" onclick="showPage('premium')">⭐ Premium</a></li>
+            <li><a href="#" id="link-auth" onclick="showPage('auth')">Connexion / S'inscrire</a></li>
         </ul>
     </nav>
 
-    <!-- Page 1 : ACCUEIL -->
-    <section id="accueil" class="hero">
-        <h1>L'Avenir de l'IA commence avec RootIA</h1>
-        <p>Une solution d'intelligence artificielle puissante, rapide et conçue pour répondre à vos besoins.</p>
-        <a href="#features" class="btn">Découvrir le projet</a>
-    </section>
-
-    <!-- Page 2 : FONCTIONNALITÉS -->
-    <section id="features">
-        <h2>Pourquoi choisir RootIA ?</h2>
-        <div class="features-grid">
-            <div class="card">
-                <h3>⚡ Hyper Rapide</h3>
-                <p>Des réponses instantanées optimisées grâce à une architecture légère.</p>
+    <!-- PAGE 1 : INTERFACE DE CHAT IA -->
+    <main id="page-chat" class="page active-page">
+        <div class="chat-container">
+            <div class="chat-header">
+                <span>Chatbot RootAI v1.0</span>
+                <span style="font-size: 0.8rem; color: #38bdf8;">● En ligne</span>
             </div>
-            <div class="card">
-                <h3>🔒 Sécurisé</h3>
-                <p>Vos données et vos modèles restent protégés et sous votre contrôle.</p>
+            <div class="chat-box" id="chat-box">
+                <div class="message bot">
+                    Bonjour ! Je suis RootAI. Posez-moi vos questions ! 🚀
+                </div>
             </div>
-            <div class="card">
-                <h3>💡 Sur-Mesure</h3>
-                <p>Conçu pour s'adapter à plusieurs types de tâches et de contextes.</p>
+            <div class="chat-input-area">
+                <input type="text" id="user-input" placeholder="Écrivez votre message à RootAI..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Envoyer</button>
             </div>
         </div>
-    </section>
+    </main>
 
-    <!-- Page 3 : CONTACT -->
-    <section id="contact">
-        <h2>Restons en contact 🚀</h2>
-        <p style="margin-top: 15px; color: #8b949e;">Le projet RootIA est en plein développement. Suivez nos avancées !</p>
-    </section>
+    <!-- PAGE 2 : CONNEXION & INSCRIPTION -->
+    <main id="page-auth" class="page">
+        <div class="auth-card">
+            <h2 id="auth-title">Rejoindre RootAI</h2>
+            
+            <!-- Bouton Google -->
+            <button class="google-btn" onclick="alert('Connexion Google en cours de configuration...')">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                Continuer avec Google
+            </button>
+
+            <div class="separator">OU PAR EMAIL</div>
+
+            <form class="auth-form" onsubmit="event.preventDefault(); alert('Compte créé avec succès !');">
+                <input type="email" placeholder="Adresse e-mail" required>
+                <input type="password" placeholder="Mot de passe" required>
+                <button type="submit" class="btn-submit">Créer un compte</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- PAGE 3 : ABONNEMENT PREMIUM -->
+    <main id="page-premium" class="page">
+        <div class="pricing-header">
+            <h1>Passez à la vitesse supérieure</h1>
+            <p>Débloquez toute la puissance de RootAI avec nos offres Premium.</p>
+        </div>
+
+        <div class="pricing-grid">
+            <!-- Plan Gratuit -->
+            <div class="price-card">
+                <div class="price-title">Gratuit</div>
+                <div class="price-amount">0€ <span>/mois</span></div>
+                <ul class="features-list">
+                    <li>✔️ Accès au modèle RootAI Standard</li>
+                    <li>✔️ 20 messages par jour</li>
+                    <li>✔️ Vitesse de réponse normale</li>
+                </ul>
+                <button class="btn-plan btn-free" onclick="showPage('chat')">Plan Actuel</button>
+            </div>
+
+            <!-- Plan Premium -->
+            <div class="price-card popular">
+                <div class="popular-badge">RECOMMANDÉ</div>
+                <div class="price-title">Premium PRO</div>
+                <div class="price-amount">14,99€ <span>/mois</span></div>
+                <ul class="features-list">
+                    <li>⚡ **Accès au modèle RootAI Pro (ultra-rapide)**</li>
+                    <li>♾️ **Messages et requêtes illimités**</li>
+                    <li>🔒 **Confidentialité renforcée de vos données**</li>
+                    <li>🎨 **Génération d'images IA incluse**</li>
+                    <li>🛠️ **Support prioritaire 24/7**</li>
+                </ul>
+                <button class="btn-plan btn-premium" onclick="alert('Redirection vers la page de paiement sécurisée...')">Devenir Premium 🚀</button>
+            </div>
+        </div>
+    </main>
 
     <footer>
-        <p>&copy; 2026 RootIA - Tous droits réservés.</p>
+        <p>&copy; 2026 RootAI - Tous droits réservés.</p>
     </footer>
 
+    <!-- LOGIQUE JAVASCRIPT POUR LE FONCTIONNEMENT DES PAGES & DU CHAT -->
+    <script>
+        // Changement de page dynamique
+        function showPage(pageName) {
+            // Masquer toutes les pages
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
+            document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+
+            // Afficher la page sélectionnée
+            document.getElementById('page-' + pageName).classList.add('active-page');
+            document.getElementById('link-' + pageName).classList.add('active');
+        }
+
+        // Envoyer un message dans le chatbot
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const text = input.value.trim();
+
+            if (text === '') return;
+
+            // Message utilisateur
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.textContent = text;
+            chatBox.appendChild(userMsg);
+
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Réponse de l'IA (Simulation)
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'message bot';
+                botMsg.textContent = "Merci pour votre message ! En tant que modèle RootAI, je suis actuellement en phase de démonstration.";
+                chatBox.appendChild(botMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1000);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+    </script>
 </body>
 </html>
