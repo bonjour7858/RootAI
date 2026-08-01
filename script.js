@@ -67,7 +67,7 @@ function updateUserUI() {
 }
 
 // -------------------------------------------------------------
-// CHATBOT IA & GENERATION D'IMAGE
+// CHATBOT IA & GÉNÉRATEUR D'IMAGES HD BOOSTÉ 🎨
 // -------------------------------------------------------------
 async function sendMessage() {
     const input = document.getElementById('user-input');
@@ -120,20 +120,26 @@ function triggerImageGen() {
 }
 
 function generateImage(promptText) {
-    const botMsg = appendMessage("🎨 Génération en cours...", 'bot');
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random()*99999)}`;
+    const botMsg = appendMessage("🎨 Génération HD en cours...", 'bot');
+    
+    // 🚀 BOOSTER DE QUALITÉ : On ajoute des mots-clés d'amélioration de style automatique
+    const enhancedPrompt = `${promptText}, highly detailed, 8k resolution, cinematic lighting, photorealistic, masterpiece, Unreal Engine 5 render`;
+    const encodedPrompt = encodeURIComponent(enhancedPrompt);
+    
+    // Utilisation du modèle 'flux' pour une qualité d'image nettement supérieure
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=768&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}`;
 
     const img = document.createElement('img');
     img.src = imageUrl;
-    img.style.cssText = "max-width:100%; border-radius:8px; margin-top:10px; border:1px solid #30363d;";
+    img.style.cssText = "max-width:100%; border-radius:12px; margin-top:10px; border:2px solid #a855f7; box-shadow: 0 4px 15px rgba(0,0,0,0.5);";
     
     img.onload = () => {
-        botMsg.textContent = "Voici votre image :";
+        botMsg.textContent = "✨ Voici votre création en Haute Définition :";
         botMsg.appendChild(document.createElement('br'));
         botMsg.appendChild(img);
     };
     img.onerror = () => {
-        botMsg.textContent = "Impossible de charger l'image pour le moment.";
+        botMsg.textContent = "Impossible de générer l'image HD pour l'instant. Réessayez dans un instant !";
     };
 }
 
@@ -150,7 +156,7 @@ function appendMessage(text, type) {
 function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 // -------------------------------------------------------------
-// SYSTEME DE TICKETS (STRICTEMENT RÉSERVÉ AU CRÉATEUR)
+// SYSTEME DE TICKETS PRIVÉS (AUTEUR & ADMIN)
 // -------------------------------------------------------------
 function createTicket(e) {
     e.preventDefault();
@@ -189,11 +195,12 @@ function renderTickets() {
     if (!list) return;
     list.innerHTML = '';
 
-    // 🔒 MODIFICATION : Visibilité strictement réservée au CRÉATEUR du ticket uniquement
-    const visibleTickets = tickets.filter(t => currentUser && t.user === currentUser.email);
+    const visibleTickets = (currentUser && currentUser.isAdmin)
+        ? tickets
+        : tickets.filter(t => currentUser && t.user === currentUser.email);
 
     if (visibleTickets.length === 0) {
-        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket trouvé pour votre compte.</p>";
+        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket disponible.</p>";
         return;
     }
 
@@ -217,11 +224,11 @@ function openTicketPage(ticketId) {
     const ticket = tickets.find(t => t.id === ticketId);
     if (!ticket) return;
 
-    // 🔒 MODIFICATION : Seul l'auteur du ticket a le droit d'ouvrir la page
     const isOwner = currentUser && currentUser.email === ticket.user;
+    const isAdmin = currentUser && currentUser.isAdmin;
 
-    if (!isOwner) {
-        alert("🔒 Accès interdit : Ce ticket ne vous appartient pas.");
+    if (!isOwner && !isAdmin) {
+        alert("🔒 Accès interdit : Vous n'êtes ni l'auteur de ce ticket ni administrateur.");
         return;
     }
 
@@ -234,23 +241,19 @@ function openTicketPage(ticketId) {
     
     const statusSelect = document.getElementById('detail-ticket-status');
     statusSelect.value = ticket.status;
-    
-    // Le statut reste modifiable par l'admin s'il est le créateur du ticket
-    const isAdmin = currentUser && currentUser.isAdmin;
     statusSelect.disabled = !isAdmin;
 
-    // 🔒 MODIFICATION : Désactivation de la zone de message pour tout le monde (ni Admin ni Propriétaire ne peuvent écrire)
     const replyInput = document.getElementById('ticket-reply-input');
     const replyButton = document.querySelector('#page-ticket-detail button.btn-action');
     
     if (replyInput) {
-        replyInput.disabled = true;
-        replyInput.placeholder = "🔒 Les réponses dans ce ticket sont désactivées.";
+        replyInput.disabled = false;
+        replyInput.placeholder = "Écrire une réponse dans le ticket...";
     }
     if (replyButton) {
-        replyButton.disabled = true;
-        replyButton.style.opacity = "0.5";
-        replyButton.style.cursor = "not-allowed";
+        replyButton.disabled = false;
+        replyButton.style.opacity = "1";
+        replyButton.style.cursor = "pointer";
     }
 
     renderTicketMessages(ticket);
@@ -273,9 +276,22 @@ function renderTicketMessages(ticket) {
     box.scrollTop = box.scrollHeight;
 }
 
-// Fonction de réponse rendue inactive
 function addTicketReply() {
-    alert("🔒 Les messages sont désactivés dans ce ticket.");
+    const input = document.getElementById('ticket-reply-input');
+    const text = input.value.trim();
+    if (!text || !activeTicketId) return;
+
+    const ticket = tickets.find(t => t.id === activeTicketId);
+    if (ticket) {
+        ticket.messages.push({
+            sender: currentUser ? currentUser.email : "Visiteur",
+            text: text,
+            date: new Date().toLocaleString()
+        });
+        localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
+        input.value = '';
+        renderTicketMessages(ticket);
+    }
 }
 
 function updateTicketStatus() {
@@ -285,7 +301,7 @@ function updateTicketStatus() {
     if (ticket) {
         ticket.status = newStatus;
         localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
-        alert("Statut changé pour : " + newStatus);
+        alert("Statut mis à jour : " + newStatus);
     }
 }
 
@@ -299,7 +315,6 @@ function getStatusColor(status) {
     }
 }
 
-// Admin PIN
 function accessAdmin() {
     const pin = prompt("Entrez le code Admin (1234) :");
     if (pin === ADMIN_PIN) {
