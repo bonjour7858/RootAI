@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RootAI - Plateforme IA Complète</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Service d'envoi d'e-mails pour GitHub Pages -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init("YOUR_PUBLIC_KEY"); // Clé EmailJS (Optionnel)
+       })();
+    </script>
 </head>
 <body>
 
@@ -15,7 +22,7 @@
         <ul class="nav-links">
             <li><a href="#" id="link-chat" class="active" onclick="showPage('chat')">IA Chat</a></li>
             <li><a href="#" id="link-image" onclick="showPage('image')">🎨 Créer Image</a></li>
-            <li><a href="#" id="link-support" onclick="showPage('support')">🎫 Support & Tickets</a></li>
+            <li><a href="#" id="link-support" onclick="showPage('support')">🎫 Support</a></li>
             <li><a href="#" id="link-premium" class="btn-nav-premium" onclick="showPage('premium')">⭐ Premium (3€)</a></li>
             <li><a href="#" id="link-auth" onclick="showPage('auth')">Connexion</a></li>
             <li><a href="#" style="color:#ef4444; font-weight:bold;" onclick="accessAdmin()">🔒 Admin</a></li>
@@ -30,7 +37,7 @@
                 <span style="font-size: 0.8rem; color: #38bdf8;">● En ligne</span>
             </div>
             <div class="chat-box" id="chat-box">
-                <div class="message bot">Bienvenue sur RootAI ! Posez vos questions ou tapez `/image un voiture futuriste` pour générer une image. 🚀</div>
+                <div class="message bot">Bienvenue sur RootAI ! Posez vos questions ou tapez `/image une voiture futuriste` pour générer une image. 🚀</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" id="user-input" placeholder="Écrivez un message..." onkeypress="handleKeyPress(event)">
@@ -72,7 +79,7 @@
     <!-- 4. SUPPORT CLIENT & TICKETS -->
     <main id="page-support" class="page">
         <div class="card-box">
-            <h2>Centre de Support & Tickets 🎫</h2>
+            <h2>Centre de Support 🎫</h2>
             <form class="form-group" onsubmit="createTicket(event)">
                 <input type="text" id="ticket-subject" placeholder="Sujet de votre demande" required>
                 <select id="ticket-priority">
@@ -90,20 +97,20 @@
     <!-- 5. SYSTEME DE COMPTES -->
     <main id="page-auth" class="page">
         <div class="card-box" style="max-width: 400px; text-align: center;">
-            <h2>Espace Connexion</h2>
+            <h2>Créer un compte / Connexion</h2>
             <form class="form-group" onsubmit="handleAuth(event)">
                 <input type="email" id="auth-email" placeholder="Adresse email" required>
                 <input type="password" placeholder="Mot de passe" required>
-                <button type="submit" class="btn-action">Se Connecter / S'inscrire</button>
+                <button type="submit" class="btn-action">S'inscrire (Envoie un e-mail)</button>
             </form>
         </div>
     </main>
 
-    <!-- 6. PANNEAU ADMIN (PRIVÉ POUR TOI) -->
+    <!-- 6. PANNEAU ADMIN (RESERVÉ À TOI) -->
     <main id="page-admin" class="page">
         <div style="width:100%; max-width:800px;">
-            <h2 style="color:#ef4444;">🔒 Panneau d'Administration (Réponses Support)</h2>
-            <p style="color:#8b949e; margin-bottom:20px;">Seul le propriétaire (toi) peut voir et répondre aux demandes ici :</p>
+            <h2 style="color:#ef4444;">🔒 Panneau d'Administration Support</h2>
+            <p style="color:#8b949e; margin-bottom:20px;">Espace réservé pour répondre aux utilisateurs :</p>
             <div id="admin-tickets-container"></div>
         </div>
     </main>
