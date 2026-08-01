@@ -1,4 +1,4 @@
-// 🔑 Ta clé API Groq (gsk_...)
+// 🔑 Remplace par ta vraie clé API Groq (commence par gsk_...)
 const API_KEY = "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"; 
 
 // 🔐 Code secret Administrateur
@@ -8,8 +8,10 @@ const ADMIN_PIN = "1234";
 let currentUser = JSON.parse(localStorage.getItem('rootai_user')) || null;
 let tickets = JSON.parse(localStorage.getItem('rootai_tickets')) || [];
 let activeTicketId = null;
+
+// Historique de conversation
 let conversationHistory = [
-    { role: "system", content: "Tu es RootAI, une IA tout-en-un puissante et utile." }
+    { role: "system", content: "Tu es RootAI, une intelligence artificielle extrêmement puissante, calée en tout (sciences, code, culture, rédaction). Tu réponds précisément et intelligemment à toutes les questions." }
 ];
 
 // Navigation
@@ -34,7 +36,7 @@ function handleAuth(e) {
     const email = document.getElementById('auth-email').value.trim();
     currentUser = { email: email, isPremium: false, isAdmin: false };
     localStorage.setItem('rootai_user', JSON.stringify(currentUser));
-    alert('✅ Connexion réussie ! Welcome ' + email);
+    alert('✅ Connexion réussie ! Bienvenue ' + email);
     updateUserUI();
     showPage('chat');
 }
@@ -70,7 +72,7 @@ function updateUserUI() {
 }
 
 // -------------------------------------------------------------
-// 2. CHATBOT IA & GÉNÉRATEUR D'IMAGES CORRIGÉ 🎨
+// 2. CHATBOT IA PUISSANT & GÉNÉRATEUR D'IMAGES
 // -------------------------------------------------------------
 async function sendMessage() {
     const input = document.getElementById('user-input');
@@ -80,8 +82,9 @@ async function sendMessage() {
     appendMessage(text, 'user');
     input.value = '';
 
-    if (text.toLowerCase().startsWith('/image') || text.toLowerCase().includes('génère une image')) {
-        generateImage(text.replace('/image', '').trim());
+    // Détection de la demande d'image
+    if (text.toLowerCase().startsWith('/image') || text.toLowerCase().includes('génère une image') || text.toLowerCase().includes('dessine')) {
+        generateImage(text.replace('/image', '').replace('génère une image', '').replace('dessine', '').trim());
         return;
     }
 
@@ -97,20 +100,26 @@ async function sendMessage() {
             },
             body: JSON.stringify({
                 messages: conversationHistory,
-                model: "llama-3.3-70b-versatile"
+                model: "llama-3.1-8b-instant", // Modèle ultra-rapide et fiable
+                temperature: 0.7,
+                max_tokens: 1024
             })
         });
 
         const data = await response.json();
-        if (data.choices && data.choices[0]) {
+        
+        if (data.choices && data.choices[0] && data.choices[0].message) {
             const aiReply = data.choices[0].message.content;
             botMsg.textContent = aiReply;
             conversationHistory.push({ role: "assistant", content: aiReply });
+        } else if (data.error) {
+            botMsg.textContent = "⚠️ Erreur API : " + data.error.message;
         } else {
-            botMsg.textContent = "⚠️ Clé API invalide ou quota dépassé.";
+            botMsg.textContent = "⚠️ L'IA n'a pas pu traiter la demande. Vérifiez votre clé API.";
         }
     } catch (error) {
-        botMsg.textContent = "⚠️ Erreur de connexion au serveur d'IA.";
+        console.error(error);
+        botMsg.textContent = "⚠️ Impossible de contacter le serveur IA. Vérifiez votre connexion.";
     }
 }
 
@@ -124,7 +133,8 @@ function triggerImageGen() {
 function generateImage(promptText) {
     const botMsg = appendMessage("🎨 Génération de l'image en cours...", 'bot');
     const cleanPrompt = encodeURIComponent(promptText || "futuristic city");
-    // URL directe Pollinations AI sans redirection
+    
+    // API d'image Pollinations
     const imageUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random()*99999)}`;
 
     const imgContainer = document.createElement('div');
@@ -159,7 +169,7 @@ function appendMessage(text, type) {
 function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 // -------------------------------------------------------------
-// 3. SYSTÈME DE TICKETS PRIVÉS & DÉDIÉS 🎫
+// 3. PAGES INDIVIDUELLES DE TICKETS (CONFIDENTIELLES)
 // -------------------------------------------------------------
 function createTicket(e) {
     e.preventDefault();
@@ -174,7 +184,7 @@ function createTicket(e) {
     const desc = document.getElementById('ticket-desc').value;
 
     const newTicket = {
-        id: Math.floor(100000 + Math.random() * 900000), // ID unique 6 chiffres
+        id: Math.floor(100000 + Math.random() * 900000),
         subject: subject,
         priority: priority,
         status: "En attente",
@@ -189,7 +199,7 @@ function createTicket(e) {
     
     document.getElementById('ticket-subject').value = '';
     document.getElementById('ticket-desc').value = '';
-    alert("Ticket #" + newTicket.id + " créé !");
+    alert("Ticket #" + newTicket.id + " créé avec succès !");
     renderTickets();
 }
 
@@ -198,19 +208,19 @@ function renderTickets() {
     if (!list) return;
     list.innerHTML = '';
 
-    // Filtrer : L'utilisateur ne voit QUE SES tickets (L'admin voit TOUT)
-    const userTickets = (currentUser && currentUser.isAdmin) 
+    // L'utilisateur ne voit QUE ses tickets, l'Admin voit TOUS les tickets
+    const visibleTickets = (currentUser && currentUser.isAdmin) 
         ? tickets 
         : tickets.filter(t => currentUser && t.user === currentUser.email);
 
-    if (userTickets.length === 0) {
-        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket disponible.</p>";
+    if (visibleTickets.length === 0) {
+        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket trouvé.</p>";
         return;
     }
 
-    userTickets.forEach(t => {
+    visibleTickets.forEach(t => {
         const item = document.createElement('div');
-        item.style.cssText = "background:#21262d; padding:15px; border-radius:8px; margin-bottom:10px; cursor:pointer; display:flex; justify-between; align-items:center; border:1px solid #30363d;";
+        item.style.cssText = "background:#21262d; padding:15px; border-radius:8px; margin-bottom:10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border:1px solid #30363d;";
         item.onclick = () => openTicketPage(t.id);
         
         item.innerHTML = `
@@ -228,19 +238,18 @@ function openTicketPage(ticketId) {
     const ticket = tickets.find(t => t.id === ticketId);
     if (!ticket) return;
 
-    // 🔒 SÉCURITÉ : Vérifier si c'est l'auteur du ticket OU l'admin
+    // 🔒 RESTRICTION D'ACCÈS : Auteur du ticket OU Admin uniquement
     const isOwner = currentUser && currentUser.email === ticket.user;
     const isAdmin = currentUser && currentUser.isAdmin;
 
     if (!isOwner && !isAdmin) {
-        alert("🔒 Accès refusé ! Ce ticket appartient à un autre utilisateur.");
+        alert("🔒 Accès refusé ! Vous n'êtes pas l'auteur de ce ticket.");
         return;
     }
 
     activeTicketId = ticketId;
     showPage('ticket-detail');
 
-    // Charger les infos dans la page dédiée
     document.getElementById('detail-ticket-id').textContent = ticket.id;
     document.getElementById('detail-ticket-subject').textContent = ticket.subject;
     document.getElementById('detail-ticket-user').textContent = ticket.user;
@@ -248,7 +257,7 @@ function openTicketPage(ticketId) {
     const statusSelect = document.getElementById('detail-ticket-status');
     statusSelect.value = ticket.status;
     
-    // Seul l'Admin peut changer le statut
+    // Changement de statut réservé à l'Admin
     statusSelect.disabled = !isAdmin;
 
     renderTicketMessages(ticket);
@@ -296,7 +305,7 @@ function updateTicketStatus() {
     if (ticket) {
         ticket.status = newStatus;
         localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
-        alert("Statut du ticket mis à jour : " + newStatus);
+        alert("Statut mis à jour : " + newStatus);
     }
 }
 
@@ -311,7 +320,7 @@ function getStatusColor(status) {
 }
 
 // -------------------------------------------------------------
-// 4. ACCÈS ADMINISTRATION
+// 4. PANNEAU ADMIN
 // -------------------------------------------------------------
 function accessAdmin() {
     const pin = prompt("Entrez le code secret Administrateur :");
@@ -320,7 +329,7 @@ function accessAdmin() {
         currentUser.isAdmin = true;
         localStorage.setItem('rootai_user', JSON.stringify(currentUser));
         updateUserUI();
-        alert("🔓 Accès Admin activé ! Vous pouvez voir tous les tickets.");
+        alert("🔓 Mode Admin activé ! Vous avez accès à l'ensemble des tickets.");
         showPage('support');
         renderTickets();
     } else if (pin !== null) {
