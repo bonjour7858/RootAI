@@ -1,5 +1,5 @@
 // 🔑 Remplace par ta vraie clé API Groq (commence par gsk_...)
-const API_KEY = "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"; 
+const API_KEY = "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"; 
 
 // 🔐 Code secret Administrateur
 const ADMIN_PIN = "1234";
