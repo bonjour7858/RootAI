@@ -3,433 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RootAI - Plateforme d'Intelligence Artificielle</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d1117;
-            color: #c9d1d9;
-            line-height: 1.6;
-        }
-
-        /* --- NAVIGATION --- */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 5%;
-            background: #161b22;
-            border-bottom: 1px solid #30363d;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .logo {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: #58a6ff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .nav-links a {
-            color: #8b949e;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-        }
-        .nav-links a:hover, .nav-links a.active {
-            color: #ffffff;
-            background: #21262d;
-        }
-        .btn-nav-premium {
-            background: linear-gradient(45deg, #a855f7, #ec4899) !important;
-            color: white !important;
-            font-weight: bold !important;
-        }
-
-        /* --- PAGES LAYOUT --- */
-        .page {
-            display: none;
-            padding: 40px 5%;
-            min-height: calc(100vh - 130px);
-        }
-        .page.active-page {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* --- CHATBOT IA --- */
-        .chat-container {
-            width: 100%;
-            max-width: 800px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            height: 70vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .chat-header {
-            padding: 15px 20px;
-            background: #21262d;
-            border-bottom: 1px solid #30363d;
-            font-weight: bold;
-            color: #58a6ff;
-            display: flex;
-            justify-content: space-between;
-        }
-        .chat-box {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            white-space: pre-wrap;
-        }
-        .message.bot { background: #21262d; color: #c9d1d9; align-self: flex-start; border: 1px solid #30363d; }
-        .message.user { background: #238636; color: white; align-self: flex-end; }
-        .chat-input-area {
-            display: flex;
-            padding: 15px;
-            background: #161b22;
-            border-top: 1px solid #30363d;
-            gap: 10px;
-        }
-        .chat-input-area input {
-            flex: 1;
-            padding: 12px 16px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: white;
-            outline: none;
-        }
-        .chat-input-area button {
-            background: #238636;
-            color: white;
-            border: none;
-            padding: 0 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* --- CARTES & FORMULAIRES --- */
-        .card-box {
-            background: #161b22;
-            padding: 40px;
-            border-radius: 12px;
-            border: 1px solid #30363d;
-            width: 100%;
-            max-width: 650px;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .form-group input, .form-group textarea, .form-group select {
-            padding: 12px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: white;
-            outline: none;
-            font-family: inherit;
-        }
-        .btn-action {
-            background: #58a6ff;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-action:hover { background: #388bfd; }
-
-
-        .about-content h1 { font-size: 2.2rem; color: #58a6ff; margin-bottom: 15px; }
-        .about-content p { color: #8b949e; margin-bottom: 20px; font-size: 1.05rem; }
-        .features-mini-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 25px;
-        }
-        .mini-card { background: #0d1117; padding: 15px; border-radius: 8px; border: 1px solid #30363d; }
-        .mini-card h4 { color: #bc8cff; margin-bottom: 5px; }
-
-        .ticket-list { margin-top: 30px; width: 100%; display: flex; flex-direction: column; gap: 10px; }
-        .ticket-item { background: #0d1117; padding: 15px; border-radius: 8px; border: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
-        .ticket-status { font-size: 0.8rem; padding: 4px 8px; border-radius: 12px; font-weight: bold; }
-        .status-open { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
-
-        .google-btn { width: 100%; background: white; color: #333; border: none; padding: 12px; border-radius: 6px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; }
-        .separator { margin: 20px 0; color: #8b949e; font-size: 0.85rem; text-align: center; }
-
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; width: 100%; max-width: 900px; }
-        .price-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 30px; display: flex; flex-direction: column; position: relative; }
-        .price-card.popular { border: 2px solid #a855f7; }
-        .popular-badge { position: absolute; top: -12px; right: 20px; background: #a855f7; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-
-        footer { text-align: center; padding: 20px; border-top: 1px solid #30363d; color: #8b949e; font-size: 0.9rem; }
-    </style>
+    <title>RootAI - Plateforme IA complète</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 
     <nav>
         <div class="logo" onclick="showPage('chat')">RootAI 🤖</div>
         <ul class="nav-links">
-            <li><a href="#" id="link-chat" class="active" onclick="showPage('chat')">IA Chat</a></li>
+            <li><a href="#" id="link-chat" class="active" onclick="showPage('chat')">RootAI Chat</a></li>
             <li><a href="#" id="link-about" onclick="showPage('about')">À Propos</a></li>
-            <li><a href="#" id="link-contact" onclick="showPage('contact')">Contact</a></li>
             <li><a href="#" id="link-support" onclick="showPage('support')">Support</a></li>
             <li><a href="#" id="link-premium" class="btn-nav-premium" onclick="showPage('premium')">⭐ Premium</a></li>
-            <li><a href="#" id="link-auth" onclick="showPage('auth')">Connexion</a></li>
         </ul>
     </nav>
 
-
+    <!-- CHATBOT TOUT-EN-UN -->
     <main id="page-chat" class="page active-page">
         <div class="chat-container">
             <div class="chat-header">
-                <span>RootAI Chatbot (Propulsé par IA)</span>
-                <span style="font-size: 0.8rem; color: #38bdf8;">● Connecté</span>
+                <span>RootAI v2.0 (Texte + Génération d'images)</span>
+                <span style="font-size: 0.8rem; color: #38bdf8;">● En ligne</span>
             </div>
             <div class="chat-box" id="chat-box">
-                <div class="message bot">Bonjour ! Je suis RootAI. Posez-moi n'importe quelle question, je suis connecté à une vraie IA ! 🚀</div>
+                <div class="message bot">Bienvenue sur RootAI tout-en-un ! 🚀<br><br>💡 **Astuce :** Posez une question normale, ou écrivez <i>"/image un dragon futuriste"</i> pour générer une image !</div>
             </div>
             <div class="chat-input-area">
-                <input type="text" id="user-input" placeholder="Écrivez votre message..." onkeypress="handleKeyPress(event)">
+                <input type="text" id="user-input" placeholder="Écrivez un message ou tapez /image..." onkeypress="handleKeyPress(event)">
                 <button onclick="sendMessage()">Envoyer</button>
             </div>
         </div>
     </main>
 
-
+    <!-- À PROPOS -->
     <main id="page-about" class="page">
-        <div class="card-box about-content">
-            <h1>À propos de RootAI</h1>
-            <p>RootAI est une plateforme moderne permettant d'interagir directement avec des modèles d’intelligence artificielle performants.</p>
-            <div class="features-mini-grid">
-                <div class="mini-card">
-                    <h4>🚀 Vitesse Ultime</h4>
-                    <p style="font-size: 0.85rem;">Réponses générées instantanément.</p>
-                </div>
-                <div class="mini-card">
-                    <h4>🔒 Sécurité</h4>
-                    <p style="font-size: 0.85rem;">Protection de votre vie privée.</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-
-    <main id="page-contact" class="page">
         <div class="card-box">
-            <h2>Contactez-nous 📩</h2>
-            <form class="form-group" onsubmit="event.preventDefault(); alert('Message envoyé !');">
-                <input type="text" placeholder="Votre nom" required>
-                <input type="email" placeholder="Adresse email" required>
-                <textarea rows="5" placeholder="Votre message..." required></textarea>
-                <button type="submit" class="btn-action">Envoyer</button>
-            </form>
+            <h1>À propos de RootAI</h1>
+            <p>RootAI combine désormais la puissance du texte et la génération d'images en temps réel !</p>
         </div>
     </main>
 
-
+    <!-- SUPPORT -->
     <main id="page-support" class="page">
         <div class="card-box">
-            <h2>Centre d'Assistance 🎫</h2>
-            <form class="form-group" onsubmit="createTicket(event)">
-                <input type="text" id="ticket-subject" placeholder="Sujet" required>
-                <select id="ticket-priority">
-                    <option value="Basse">Priorité : Basse</option>
-                    <option value="Moyenne">Priorité : Moyenne</option>
-                    <option value="Haute">Priorité : Haute ⚡</option>
-                </select>
-                <textarea id="ticket-desc" rows="4" placeholder="Description du problème..." required></textarea>
-                <button type="submit" class="btn-action" style="background: #238636;">Créer un ticket</button>
-            </form>
-
-            <h3 style="margin-top: 30px;">Vos tickets</h3>
-            <div class="ticket-list" id="ticket-list">
-                <div class="ticket-item">
-                    <div>
-                        <strong>#1001 - Bienvenue sur le support</strong>
-                        <p style="font-size: 0.8rem; color: #8b949e;">Priorité : Basse</p>
-                    </div>
-                    <span class="ticket-status status-open">Résolu</span>
-                </div>
-            </div>
+            <h2>Support technique 🎫</h2>
+            <p>Des questions ? Notre équipe est là pour vous aider.</p>
         </div>
     </main>
 
-
+    <!-- PREMIUM -->
     <main id="page-premium" class="page">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="font-size: 2.5rem; background: linear-gradient(45deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Offres Premium</h1>
-        </div>
-        <div class="pricing-grid">
-            <div class="price-card">
-                <h3>Gratuit</h3>
-                <h2 style="font-size: 2rem; margin: 15px 0;">0€ <span>/mois</span></h2>
-                <ul style="list-style: none; margin-bottom: 20px;">
-                    <li>✔️ Accès au modèle Standard</li>
-                </ul>
-                <button class="btn-action" style="background: #21262d;" onclick="showPage('chat')">Plan Actuel</button>
-            </div>
-            <div class="price-card popular">
-                <div class="popular-badge">POPULAIRE</div>
-                <h3>Premium PRO</h3>
-                <h2 style="font-size: 2rem; margin: 15px 0; color: #a855f7;">14,99€ <span>/mois</span></h2>
-                <ul style="list-style: none; margin-bottom: 20px;">
-                    <li>⚡ Reponses ultra-rapides</li>
-                    <li>♾️ Usage illimité</li>
-                </ul>
-                <button class="btn-action" style="background: linear-gradient(45deg, #a855f7, #ec4899);" onclick="alert('Redirection...')">Devenir Premium</button>
-            </div>
-        </div>
-    </main>
-
-
-    <main id="page-auth" class="page">
-        <div class="card-box" style="max-width: 400px; text-align: center;">
-            <h2>Connexion</h2>
-            <br>
-            <button class="google-btn" onclick="alert('Connexion Google...')">Se connecter avec Google</button>
-            <div class="separator">OU</div>
-            <form class="form-group" onsubmit="event.preventDefault(); alert('Connecté !');">
-                <input type="email" placeholder="Email" required>
-                <input type="password" placeholder="Mot de passe" required>
-                <button type="submit" class="btn-action">Se connecter</button>
-            </form>
+        <div class="card-box" style="text-align:center;">
+            <h2>Offres Premium</h2>
+            <p>Accédez à une vitesse encore plus rapide et des modèles sans limites.</p>
         </div>
     </main>
 
     <footer>
-        <p>&copy; 2026 RootAI - Tous droits réservés.</p>
+        <p>&copy; 2026 RootAI - Plateforme complète</p>
     </footer>
 
-
-    <script>
-     
-        const API_KEY = "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"; 
-
-        function showPage(pageName) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
-            document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
-            document.getElementById('page-' + pageName).classList.add('active-page');
-            if (document.getElementById('link-' + pageName)) {
-                document.getElementById('link-' + pageName).classList.add('active');
-            }
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const chatBox = document.getElementById('chat-box');
-            const text = input.value.trim();
-
-            if (text === '') return;
-
-            // Message utilisateur
-            const userMsg = document.createElement('div');
-            userMsg.className = 'message user';
-            userMsg.textContent = text;
-            chatBox.appendChild(userMsg);
-            input.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // Chargement bot
-            const botMsg = document.createElement('div');
-            botMsg.className = 'message bot';
-            botMsg.textContent = "RootAI réfléchit... 🧠";
-            chatBox.appendChild(botMsg);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            try {
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        messages: [
-                            { role: "system", content: "Tu es RootAI, une IA assistant polie, intelligente et précise." },
-                            { role: "user", content: text }
-                        ],
-                        model: "llama-3.3-70b-versatile"
-                    })
-                });
-
-                const data = await response.json();
-                if (data.choices && data.choices[0]) {
-                    botMsg.textContent = data.choices[0].message.content;
-                } else {
-                    botMsg.textContent = "Erreur : Vérifiez que vous avez bien remplacé 'TA_CLE_GROQ_ICI' par votre clé API Groq.";
-                }
-
-            } catch (error) {
-                console.error(error);
-                botMsg.textContent = "Impossible de contacter l'IA pour le moment.";
-            }
-
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
-
-        let ticketCount = 1002;
-        function createTicket(e) {
-            e.preventDefault();
-            const subject = document.getElementById('ticket-subject').value;
-            const priority = document.getElementById('ticket-priority').value;
-            const ticketList = document.getElementById('ticket-list');
-
-            const newTicket = document.createElement('div');
-            newTicket.className = 'ticket-item';
-            newTicket.innerHTML = `
-                <div>
-                    <strong>#${ticketCount} - ${subject}</strong>
-                    <p style="font-size: 0.8rem; color: #8b949e;">Priorité : ${priority}</p>
-                </div>
-                <span class="ticket-status status-open">En attente</span>
-            `;
-            ticketList.prepend(newTicket);
-            ticketCount++;
-
-            document.getElementById('ticket-subject').value = '';
-            document.getElementById('ticket-desc').value = '';
-            alert('Ticket créé !');
-        }
-    </script>
+    <!-- INCLUSION DU JAVASCRIPT -->
+    <script src="script.js"></script>
 </body>
 </html>
