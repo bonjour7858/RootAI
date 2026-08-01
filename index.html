@@ -10,49 +10,161 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #0d1117;
             color: #c9d1d9;
+            line-height: 1.6;
+        }
+
+        /* Barre de navigation */
+        nav {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: #8b949e;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: #58a6ff;
+        }
+
+        /* Sections principal */
+        section {
+            padding: 80px 8%;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             text-align: center;
         }
-        .container {
-            max-width: 600px;
-            padding: 40px;
-            background: #161b22;
-            border-radius: 16px;
-            border: 1px solid #30363d;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
+
+        /* Page d'accueil (Hero) */
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
             background: linear-gradient(45deg, #58a6ff, #bc8cff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        p {
+        .hero p {
             font-size: 1.2rem;
             color: #8b949e;
+            max-width: 600px;
             margin-bottom: 30px;
         }
-        .badge {
-            display: inline-block;
-            padding: 8px 16px;
-            background: rgba(56, 189, 248, 0.1);
-            color: #38bdf8;
-            border-radius: 20px;
-            font-size: 0.9rem;
+        .btn {
+            background: #238636;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
             font-weight: bold;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #2ea043;
+        }
+
+        /* Section Fonctionnalités (Grille) */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 40px;
+        }
+        .card {
+            background: #161b22;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            text-align: left;
+        }
+        .card h3 {
+            color: #58a6ff;
+            margin-bottom: 10px;
+        }
+        .card p {
+            color: #8b949e;
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid #30363d;
+            color: #8b949e;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>RootIA 🤖</h1>
-        <p>Projet d'Intelligence Artificielle de nouvelle génération.</p>
-        <span class="badge">🚀 En cours de développement</span>
-    </div>
+
+    <!-- Menu de Navigation -->
+    <nav>
+        <div class="logo">RootIA 🤖</div>
+        <ul class="nav-links">
+            <li><a href="#accueil">Accueil</a></li>
+            <li><a href="#features">Fonctionnalités</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Page 1 : ACCUEIL -->
+    <section id="accueil" class="hero">
+        <h1>L'Avenir de l'IA commence avec RootIA</h1>
+        <p>Une solution d'intelligence artificielle puissante, rapide et conçue pour répondre à vos besoins.</p>
+        <a href="#features" class="btn">Découvrir le projet</a>
+    </section>
+
+    <!-- Page 2 : FONCTIONNALITÉS -->
+    <section id="features">
+        <h2>Pourquoi choisir RootIA ?</h2>
+        <div class="features-grid">
+            <div class="card">
+                <h3>⚡ Hyper Rapide</h3>
+                <p>Des réponses instantanées optimisées grâce à une architecture légère.</p>
+            </div>
+            <div class="card">
+                <h3>🔒 Sécurisé</h3>
+                <p>Vos données et vos modèles restent protégés et sous votre contrôle.</p>
+            </div>
+            <div class="card">
+                <h3>💡 Sur-Mesure</h3>
+                <p>Conçu pour s'adapter à plusieurs types de tâches et de contextes.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Page 3 : CONTACT -->
+    <section id="contact">
+        <h2>Restons en contact 🚀</h2>
+        <p style="margin-top: 15px; color: #8b949e;">Le projet RootIA est en plein développement. Suivez nos avancées !</p>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 RootIA - Tous droits réservés.</p>
+    </footer>
+
 </body>
 </html>
