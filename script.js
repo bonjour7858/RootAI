@@ -1,19 +1,17 @@
-// Clé API Groq (À remplacer par la tienne)
-const API_KEY = "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"; 
+// 🔑 Mets ta clé Groq valide ici (commence par gsk_...)
+const API_KEY = "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"; 
 
-// Mot de passe maître pour le Panneau d'Administration
-const ADMIN_PIN = "7878"; // ⬅️ Change ce code admin par celui que tu veux !
+// 🔐 Ton code PIN secret pour accéder au Panneau Admin
+const ADMIN_PIN = "1234";
 
-// Base de données locale
+// Données en mémoire locale
 let currentUser = JSON.parse(localStorage.getItem('rootai_user')) || null;
-let tickets = JSON.parse(localStorage.getItem('rootai_tickets')) || [
-    { id: 1001, subject: "Problème d'accès", priority: "Haute", status: "Résolu", user: "demo@rootai.com", desc: "Je n'arrive pas à me connecter.", replies: ["Admin: Bonjour, le souci est réglé !"] }
-];
+let tickets = JSON.parse(localStorage.getItem('rootai_tickets')) || [];
 let conversationHistory = [
-    { role: "system", content: "Tu es RootAI, une IA tout-en-un ultra puissante, polyvalente et experte." }
+    { role: "system", content: "Tu es RootAI, une IA tout-en-un puissante, utile et aimable." }
 ];
 
-// Navigation
+// Gestion des pages
 function showPage(pageName) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
     document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
@@ -21,23 +19,21 @@ function showPage(pageName) {
     const targetPage = document.getElementById('page-' + pageName);
     if(targetPage) targetPage.classList.add('active-page');
     
-    if (document.getElementById('link-' + pageName)) {
-        document.getElementById('link-' + pageName).classList.add('active');
-    }
+    const targetLink = document.getElementById('link-' + pageName);
+    if (targetLink) targetLink.classList.add('active');
+
     updateUserUI();
 }
 
 // -------------------------------------------------------------
-// 1. SYSTÈME DE COMPTES & AUTHENTIFICATION
+// 1. GESTION DES COMPTES
 // -------------------------------------------------------------
 function handleAuth(e) {
     e.preventDefault();
     const email = document.getElementById('auth-email').value;
-    const isPremium = false;
-    
-    currentUser = { email: email, isPremium: isPremium, role: email.includes('admin') ? 'admin' : 'user' };
+    currentUser = { email: email, isPremium: false };
     localStorage.setItem('rootai_user', JSON.stringify(currentUser));
-    alert('Bienvenue ' + email + ' !');
+    alert('Connexion réussie ! Bienvenue ' + email);
     updateUserUI();
     showPage('chat');
 }
@@ -46,7 +42,7 @@ function logout() {
     currentUser = null;
     localStorage.removeItem('rootai_user');
     updateUserUI();
-    alert('Déconnexion réussie.');
+    alert('Vous êtes déconnecté.');
 }
 
 function updateUserUI() {
@@ -57,7 +53,7 @@ function updateUserUI() {
         authLink.textContent = "Déconnexion";
         authLink.onclick = logout;
         if (userBadge) {
-            userBadge.innerHTML = `👤 ${currentUser.email} ${currentUser.isPremium ? '<span style="color:#a855f7;">[PREMIUM]</span>' : '[GRATUIT]'}`;
+            userBadge.innerHTML = `👤 ${currentUser.email} ${currentUser.isPremium ? '<b style="color:#a855f7;">[PREMIUM]</b>' : '[GRATUIT]'}`;
         }
     } else {
         authLink.textContent = "Connexion";
@@ -67,42 +63,38 @@ function updateUserUI() {
 }
 
 // -------------------------------------------------------------
-// 2. ABONNEMENT PREMIUM (3€ / mois)
+// 2. SYSTEME PREMIUM (3€)
 // -------------------------------------------------------------
 function subscribePremium() {
     if (!currentUser) {
-        alert("Veuillez vous connecter avant de souscrire un abonnement.");
+        alert("Veuillez vous connecter avant de souscrire.");
         showPage('auth');
         return;
     }
     
-    // Simulation du paiement Stripe
-    if (confirm("Payer 3,00 €/mois pour passer RootAI en version Premium ?")) {
+    if (confirm("Confirmer l'abonnement RootAI Premium à 3,00 € / mois ?")) {
         currentUser.isPremium = true;
         localStorage.setItem('rootai_user', JSON.stringify(currentUser));
-        alert("Félicitations ! Vous êtes maintenant Membre Premium 🚀");
+        alert("🎉 Bravo ! Vous êtes désormais membre Premium !");
         updateUserUI();
         showPage('chat');
     }
 }
 
 // -------------------------------------------------------------
-// 3. IA CHAT & GENERATEUR D'IMAGES
+// 3. IA CHAT + GENERATEUR D'IMAGES
 // -------------------------------------------------------------
 async function sendMessage() {
     const input = document.getElementById('user-input');
-    const chatBox = document.getElementById('chat-box');
     const text = input.value.trim();
 
     if (text === '') return;
 
-    // Affiche message utilisateur
     appendMessage(text, 'user');
     input.value = '';
 
-    // Détection commande Image
-    if (text.toLowerCase().startsWith('/image') || text.toLowerCase().includes('génère une image')) {
-        generateImage(text, chatBox);
+    if (text.toLowerCase().startsWith('/image')) {
+        generateImage(text.replace('/image', '').trim());
         return;
     }
 
@@ -128,24 +120,34 @@ async function sendMessage() {
             botMsg.textContent = aiReply;
             conversationHistory.push({ role: "assistant", content: aiReply });
         } else {
-            botMsg.textContent = "Vérifiez votre clé API dans script.js.";
+            botMsg.textContent = "Erreur : La clé API Groq est invalide ou manquante.";
         }
     } catch (error) {
-        botMsg.textContent = "Erreur de connexion au serveur d'IA.";
+        botMsg.textContent = "Erreur de connexion avec l'IA.";
     }
 }
 
-function generateImage(prompt, chatBox) {
-    const botMsg = appendMessage("🎨 Génération de l'image Haute Définition...", 'bot');
-    const cleanPrompt = encodeURIComponent(prompt.replace('/image', '').trim());
-    const imageUrl = `https://pollinations.ai/p/${cleanPrompt}?width=800&height=600&seed=${Math.floor(Math.random()*1000)}`;
+function triggerImageGen() {
+    const prompt = document.getElementById('img-prompt-input').value;
+    if (!prompt) return;
+    showPage('chat');
+    generateImage(prompt);
+}
+
+function generateImage(promptText) {
+    const botMsg = appendMessage("🎨 Génération de votre image en cours...", 'bot');
+    const cleanPrompt = encodeURIComponent(promptText);
+    const imageUrl = `https://pollinations.ai/p/${cleanPrompt}?width=800&height=600&seed=${Math.floor(Math.random()*10000)}`;
 
     const img = document.createElement('img');
     img.src = imageUrl;
     img.className = 'generated-image';
     img.onload = () => {
-        botMsg.textContent = "Voici l'image générée :";
+        botMsg.textContent = "Voici votre création :";
         botMsg.appendChild(img);
+    };
+    img.onerror = () => {
+        botMsg.textContent = "Erreur lors de la génération de l'image.";
     };
 }
 
@@ -162,12 +164,13 @@ function appendMessage(text, type) {
 function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 // -------------------------------------------------------------
-// 4. TICKETS SUPPORT + ESPACE ADMIN (SEUL TOI PEUX RÉPONDRE)
+// 4. TICKETS SUPPORT CLIENT + PANNEAU ADMIN
 // -------------------------------------------------------------
 function createTicket(e) {
     e.preventDefault();
     if (!currentUser) {
-        alert("Connectez-vous pour ouvrir un ticket.");
+        alert("Connectez-vous pour envoyer un ticket.");
+        showPage('auth');
         return;
     }
     const subject = document.getElementById('ticket-subject').value;
@@ -189,7 +192,7 @@ function createTicket(e) {
     renderTickets();
     document.getElementById('ticket-subject').value = '';
     document.getElementById('ticket-desc').value = '';
-    alert("Ticket créé avec succès !");
+    alert("Ticket créé avec succès ! Le support vous répondra bientôt.");
 }
 
 function renderTickets() {
@@ -197,23 +200,30 @@ function renderTickets() {
     if (!list) return;
     list.innerHTML = '';
 
+    if (tickets.length === 0) {
+        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket pour le moment.</p>";
+        return;
+    }
+
     tickets.forEach(t => {
         const item = document.createElement('div');
-        item.className = 'ticket-item';
+        item.style.background = "#21262d";
+        item.style.padding = "12px";
+        item.style.borderRadius = "8px";
+        item.style.marginBottom = "10px";
         item.innerHTML = `
             <div>
-                <strong>#${t.id} - ${t.subject} (${t.user})</strong>
-                <p style="font-size:0.8rem; color:#8b949e;">Priorité: ${t.priority} | ${t.desc}</p>
-                ${t.replies.map(r => `<div style="color:#58a6ff; font-size:0.85rem; margin-top:5px;">💬 ${r}</div>`).join('')}
+                <strong>#${t.id} - ${t.subject}</strong> <span style="font-size:0.8rem; color:#a855f7;">(${t.status})</span>
+                <p style="font-size:0.85rem; color:#8b949e; margin-top:4px;">${t.desc}</p>
+                ${t.replies.map(r => `<div style="color:#58a6ff; font-size:0.85rem; margin-top:6px; background:#0d1117; padding:6px; border-radius:4px;">💬 ${r}</div>`).join('')}
             </div>
-            <span class="ticket-status ${t.status === 'Résolu' ? 'status-closed' : 'status-open'}">${t.status}</span>
         `;
         list.appendChild(item);
     });
 }
 
 function accessAdmin() {
-    const pin = prompt("Entrez le code PIN d'administration :");
+    const pin = prompt("Code secret Administrateur :");
     if (pin === ADMIN_PIN) {
         showPage('admin');
         renderAdminTickets();
@@ -226,18 +236,22 @@ function renderAdminTickets() {
     const container = document.getElementById('admin-tickets-container');
     container.innerHTML = '';
 
+    if (tickets.length === 0) {
+        container.innerHTML = "<p style='color:#8b949e;'>Aucun ticket d'utilisateur à traiter.</p>";
+        return;
+    }
+
     tickets.forEach((t, index) => {
         const card = document.createElement('div');
         card.className = 'card-box';
         card.style.marginBottom = '15px';
         card.innerHTML = `
             <h3>Ticket #${t.id} - ${t.subject}</h3>
-            <p><strong>Utilisateur :</strong> ${t.user}</p>
-            <p><strong>Message :</strong> ${t.desc}</p>
-            <p><strong>Statut actuel :</strong> ${t.status}</p>
-            <div style="margin-top:10px;">
-                <input type="text" id="reply-input-${index}" placeholder="Répondre à l'utilisateur..." style="width:70%; padding:8px; background:#0d1117; color:white; border:1px solid #30363d; border-radius:4px;">
-                <button onclick="adminReply(${index})" class="btn-action" style="padding:8px 12px;">Envoyer</button>
+            <p><strong>De :</strong> ${t.user} | <strong>Priorité :</strong> ${t.priority}</p>
+            <p style="margin:8px 0; background:#0d1117; padding:10px; border-radius:6px;">${t.desc}</p>
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <input type="text" id="reply-input-${index}" placeholder="Votre réponse en tant qu'Admin..." style="flex:1; padding:8px; background:#0d1117; color:white; border:1px solid #30363d; border-radius:4px;">
+                <button onclick="adminReply(${index})" class="btn-action">Répondre</button>
             </div>
         `;
         container.appendChild(card);
@@ -249,11 +263,11 @@ function adminReply(index) {
     const replyText = input.value.trim();
     if (replyText === '') return;
 
-    tickets[index].replies.push(`Support Admin: ${replyText}`);
+    tickets[index].replies.push(`Support: ${replyText}`);
     tickets[index].status = "Résolu";
     localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
     renderAdminTickets();
-    alert("Réponse envoyée et ticket marqué comme résolu !");
+    alert("Réponse envoyée au client !");
 }
 
 window.onload = () => {
