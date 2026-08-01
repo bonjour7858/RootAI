@@ -150,7 +150,7 @@ function appendMessage(text, type) {
 function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 // -------------------------------------------------------------
-// SYSTEME DE TICKETS PRIVÉ + PAGE UNIQUE
+// SYSTEME DE TICKETS (STRICTEMENT RÉSERVÉ AU CRÉATEUR)
 // -------------------------------------------------------------
 function createTicket(e) {
     e.preventDefault();
@@ -189,13 +189,11 @@ function renderTickets() {
     if (!list) return;
     list.innerHTML = '';
 
-    // Filtrage : Si Admin -> Voit TOUT. Si Utilisateur -> Voit SEULEMENT ses tickets.
-    const visibleTickets = (currentUser && currentUser.isAdmin)
-        ? tickets
-        : tickets.filter(t => currentUser && t.user === currentUser.email);
+    // 🔒 MODIFICATION : Visibilité strictement réservée au CRÉATEUR du ticket uniquement
+    const visibleTickets = tickets.filter(t => currentUser && t.user === currentUser.email);
 
     if (visibleTickets.length === 0) {
-        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket affichable.</p>";
+        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket trouvé pour votre compte.</p>";
         return;
     }
 
@@ -219,11 +217,10 @@ function openTicketPage(ticketId) {
     const ticket = tickets.find(t => t.id === ticketId);
     if (!ticket) return;
 
-    // Protection des droits d'accès
+    // 🔒 MODIFICATION : Seul l'auteur du ticket a le droit d'ouvrir la page
     const isOwner = currentUser && currentUser.email === ticket.user;
-    const isAdmin = currentUser && currentUser.isAdmin;
 
-    if (!isOwner && !isAdmin) {
+    if (!isOwner) {
         alert("🔒 Accès interdit : Ce ticket ne vous appartient pas.");
         return;
     }
@@ -237,7 +234,24 @@ function openTicketPage(ticketId) {
     
     const statusSelect = document.getElementById('detail-ticket-status');
     statusSelect.value = ticket.status;
-    statusSelect.disabled = !isAdmin; // L'Admin SEUL peut modifier le statut
+    
+    // Le statut reste modifiable par l'admin s'il est le créateur du ticket
+    const isAdmin = currentUser && currentUser.isAdmin;
+    statusSelect.disabled = !isAdmin;
+
+    // 🔒 MODIFICATION : Désactivation de la zone de message pour tout le monde (ni Admin ni Propriétaire ne peuvent écrire)
+    const replyInput = document.getElementById('ticket-reply-input');
+    const replyButton = document.querySelector('#page-ticket-detail button.btn-action');
+    
+    if (replyInput) {
+        replyInput.disabled = true;
+        replyInput.placeholder = "🔒 Les réponses dans ce ticket sont désactivées.";
+    }
+    if (replyButton) {
+        replyButton.disabled = true;
+        replyButton.style.opacity = "0.5";
+        replyButton.style.cursor = "not-allowed";
+    }
 
     renderTicketMessages(ticket);
 }
@@ -259,22 +273,9 @@ function renderTicketMessages(ticket) {
     box.scrollTop = box.scrollHeight;
 }
 
+// Fonction de réponse rendue inactive
 function addTicketReply() {
-    const input = document.getElementById('ticket-reply-input');
-    const text = input.value.trim();
-    if (!text || !activeTicketId) return;
-
-    const ticket = tickets.find(t => t.id === activeTicketId);
-    if (ticket) {
-        ticket.messages.push({
-            sender: currentUser ? currentUser.email : "Anonyme",
-            text: text,
-            date: new Date().toLocaleString()
-        });
-        localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
-        input.value = '';
-        renderTicketMessages(ticket);
-    }
+    alert("🔒 Les messages sont désactivés dans ce ticket.");
 }
 
 function updateTicketStatus() {
@@ -305,7 +306,7 @@ function accessAdmin() {
         currentUser = { email: "admin@rootai.com", isAdmin: true };
         localStorage.setItem('rootai_user', JSON.stringify(currentUser));
         updateUserUI();
-        alert("🔓 Connecté en tant qu'ADMIN ! Tous les tickets sont visibles.");
+        alert("🔓 Connecté en tant qu'ADMIN !");
         showPage('support');
         renderTickets();
     } else if (pin !== null) {
