@@ -1,17 +1,14 @@
-// 🔑 Remplace par ta vraie clé API Groq (commence par gsk_...)
+// 🔑 Mets ta clé Groq ici (ex: "gsk_abcd1234...")
 const API_KEY = "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"; 
 
-// 🔐 Code secret Administrateur
 const ADMIN_PIN = "1234";
 
-// Données locales
 let currentUser = JSON.parse(localStorage.getItem('rootai_user')) || null;
 let tickets = JSON.parse(localStorage.getItem('rootai_tickets')) || [];
 let activeTicketId = null;
 
-// Historique de conversation
 let conversationHistory = [
-    { role: "system", content: "Tu es RootAI, une intelligence artificielle extrêmement puissante, calée en tout (sciences, code, culture, rédaction). Tu réponds précisément et intelligemment à toutes les questions." }
+    { role: "system", content: "Tu es RootAI, une IA utile, intelligente et dynamique." }
 ];
 
 // Navigation
@@ -28,15 +25,13 @@ function showPage(pageName) {
     updateUserUI();
 }
 
-// -------------------------------------------------------------
-// 1. COMPTES & AUTHENTIFICATION
-// -------------------------------------------------------------
+// Authentification
 function handleAuth(e) {
     e.preventDefault();
     const email = document.getElementById('auth-email').value.trim();
     currentUser = { email: email, isPremium: false, isAdmin: false };
     localStorage.setItem('rootai_user', JSON.stringify(currentUser));
-    alert('✅ Connexion réussie ! Bienvenue ' + email);
+    alert('✅ Connecté en tant que : ' + email);
     updateUserUI();
     showPage('chat');
 }
@@ -45,7 +40,7 @@ function logout() {
     currentUser = null;
     localStorage.removeItem('rootai_user');
     updateUserUI();
-    alert('Déconnexion effectuée.');
+    alert('Déconnecté.');
     showPage('auth');
 }
 
@@ -59,7 +54,7 @@ function updateUserUI() {
             authLink.onclick = logout;
         }
         if (userBadge) {
-            const roleTag = currentUser.isAdmin ? '<b style="color:#ef4444;">[ADMIN]</b>' : (currentUser.isPremium ? '<b style="color:#a855f7;">[PREMIUM]</b>' : '[GRATUIT]');
+            const roleTag = currentUser.isAdmin ? '<b style="color:#ef4444;">[ADMIN]</b>' : '[MEMBRE]';
             userBadge.innerHTML = `👤 ${currentUser.email} ${roleTag}`;
         }
     } else {
@@ -72,7 +67,7 @@ function updateUserUI() {
 }
 
 // -------------------------------------------------------------
-// 2. CHATBOT IA PUISSANT & GÉNÉRATEUR D'IMAGES
+// CHATBOT IA & GENERATION D'IMAGE
 // -------------------------------------------------------------
 async function sendMessage() {
     const input = document.getElementById('user-input');
@@ -82,9 +77,8 @@ async function sendMessage() {
     appendMessage(text, 'user');
     input.value = '';
 
-    // Détection de la demande d'image
-    if (text.toLowerCase().startsWith('/image') || text.toLowerCase().includes('génère une image') || text.toLowerCase().includes('dessine')) {
-        generateImage(text.replace('/image', '').replace('génère une image', '').replace('dessine', '').trim());
+    if (text.toLowerCase().startsWith('/image')) {
+        generateImage(text.replace('/image', '').trim());
         return;
     }
 
@@ -100,26 +94,21 @@ async function sendMessage() {
             },
             body: JSON.stringify({
                 messages: conversationHistory,
-                model: "llama-3.1-8b-instant", // Modèle ultra-rapide et fiable
-                temperature: 0.7,
-                max_tokens: 1024
+                model: "llama-3.1-8b-instant"
             })
         });
 
         const data = await response.json();
         
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            const aiReply = data.choices[0].message.content;
-            botMsg.textContent = aiReply;
-            conversationHistory.push({ role: "assistant", content: aiReply });
-        } else if (data.error) {
-            botMsg.textContent = "⚠️ Erreur API : " + data.error.message;
+        if (data.choices && data.choices[0]) {
+            const reply = data.choices[0].message.content;
+            botMsg.textContent = reply;
+            conversationHistory.push({ role: "assistant", content: reply });
         } else {
-            botMsg.textContent = "⚠️ L'IA n'a pas pu traiter la demande. Vérifiez votre clé API.";
+            botMsg.textContent = "⚠️ Erreur API : Vérifiez votre clé Groq.";
         }
-    } catch (error) {
-        console.error(error);
-        botMsg.textContent = "⚠️ Impossible de contacter le serveur IA. Vérifiez votre connexion.";
+    } catch (err) {
+        botMsg.textContent = "⚠️ Erreur de connexion au serveur.";
     }
 }
 
@@ -131,28 +120,20 @@ function triggerImageGen() {
 }
 
 function generateImage(promptText) {
-    const botMsg = appendMessage("🎨 Génération de l'image en cours...", 'bot');
-    const cleanPrompt = encodeURIComponent(promptText || "futuristic city");
-    
-    // API d'image Pollinations
-    const imageUrl = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random()*99999)}`;
+    const botMsg = appendMessage("🎨 Génération en cours...", 'bot');
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random()*99999)}`;
 
-    const imgContainer = document.createElement('div');
-    imgContainer.style.marginTop = "10px";
-    
     const img = document.createElement('img');
     img.src = imageUrl;
-    img.style.maxWidth = "100%";
-    img.style.borderRadius = "8px";
-    img.style.border = "1px solid #30363d";
+    img.style.cssText = "max-width:100%; border-radius:8px; margin-top:10px; border:1px solid #30363d;";
     
     img.onload = () => {
-        botMsg.textContent = "Voici votre création :";
-        imgContainer.appendChild(img);
-        botMsg.appendChild(imgContainer);
+        botMsg.textContent = "Voici votre image :";
+        botMsg.appendChild(document.createElement('br'));
+        botMsg.appendChild(img);
     };
     img.onerror = () => {
-        botMsg.textContent = "Erreur lors du chargement de l'image. Réessayez !";
+        botMsg.textContent = "Impossible de charger l'image pour le moment.";
     };
 }
 
@@ -169,12 +150,12 @@ function appendMessage(text, type) {
 function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 // -------------------------------------------------------------
-// 3. PAGES INDIVIDUELLES DE TICKETS (CONFIDENTIELLES)
+// SYSTEME DE TICKETS PRIVÉ + PAGE UNIQUE
 // -------------------------------------------------------------
 function createTicket(e) {
     e.preventDefault();
     if (!currentUser) {
-        alert("Veuillez vous connecter pour ouvrir un ticket.");
+        alert("Connectez-vous pour ouvrir un ticket !");
         showPage('auth');
         return;
     }
@@ -199,7 +180,7 @@ function createTicket(e) {
     
     document.getElementById('ticket-subject').value = '';
     document.getElementById('ticket-desc').value = '';
-    alert("Ticket #" + newTicket.id + " créé avec succès !");
+    alert("Ticket créé ! ID: #" + newTicket.id);
     renderTickets();
 }
 
@@ -208,13 +189,13 @@ function renderTickets() {
     if (!list) return;
     list.innerHTML = '';
 
-    // L'utilisateur ne voit QUE ses tickets, l'Admin voit TOUS les tickets
-    const visibleTickets = (currentUser && currentUser.isAdmin) 
-        ? tickets 
+    // Filtrage : Si Admin -> Voit TOUT. Si Utilisateur -> Voit SEULEMENT ses tickets.
+    const visibleTickets = (currentUser && currentUser.isAdmin)
+        ? tickets
         : tickets.filter(t => currentUser && t.user === currentUser.email);
 
     if (visibleTickets.length === 0) {
-        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket trouvé.</p>";
+        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket affichable.</p>";
         return;
     }
 
@@ -224,9 +205,9 @@ function renderTickets() {
         item.onclick = () => openTicketPage(t.id);
         
         item.innerHTML = `
-            <div style="flex:1;">
-                <strong>#${t.id} - ${t.subject}</strong> 
-                <p style="font-size:0.8rem; color:#8b949e;">De: ${t.user} | Priorité: ${t.priority}</p>
+            <div>
+                <strong>#${t.id} - ${t.subject}</strong>
+                <p style="font-size:0.8rem; color:#8b949e; margin-top:3px;">Par: ${t.user} | Priorité: ${t.priority}</p>
             </div>
             <span style="padding:4px 8px; border-radius:4px; font-size:0.8rem; background:${getStatusColor(t.status)}; color:white;">${t.status}</span>
         `;
@@ -238,12 +219,12 @@ function openTicketPage(ticketId) {
     const ticket = tickets.find(t => t.id === ticketId);
     if (!ticket) return;
 
-    // 🔒 RESTRICTION D'ACCÈS : Auteur du ticket OU Admin uniquement
+    // Protection des droits d'accès
     const isOwner = currentUser && currentUser.email === ticket.user;
     const isAdmin = currentUser && currentUser.isAdmin;
 
     if (!isOwner && !isAdmin) {
-        alert("🔒 Accès refusé ! Vous n'êtes pas l'auteur de ce ticket.");
+        alert("🔒 Accès interdit : Ce ticket ne vous appartient pas.");
         return;
     }
 
@@ -256,34 +237,32 @@ function openTicketPage(ticketId) {
     
     const statusSelect = document.getElementById('detail-ticket-status');
     statusSelect.value = ticket.status;
-    
-    // Changement de statut réservé à l'Admin
-    statusSelect.disabled = !isAdmin;
+    statusSelect.disabled = !isAdmin; // L'Admin SEUL peut modifier le statut
 
     renderTicketMessages(ticket);
 }
 
 function renderTicketMessages(ticket) {
-    const msgBox = document.getElementById('ticket-messages-box');
-    msgBox.innerHTML = '';
+    const box = document.getElementById('ticket-messages-box');
+    box.innerHTML = '';
 
     ticket.messages.forEach(m => {
         const isMe = currentUser && m.sender === currentUser.email;
         const div = document.createElement('div');
-        div.style.cssText = `max-width:80%; padding:10px 14px; border-radius:8px; margin-bottom:10px; ${isMe ? 'background:#238636; margin-left:auto;' : 'background:#21262d; margin-right:auto; border:1px solid #30363d;'}`;
+        div.style.cssText = `max-width:80%; padding:10px; border-radius:8px; margin-bottom:10px; ${isMe ? 'background:#238636; margin-left:auto;' : 'background:#21262d; margin-right:auto; border:1px solid #30363d;'}`;
         div.innerHTML = `
-            <div style="font-size:0.75rem; color:#8b949e; margin-bottom:3px;">${m.sender} - ${m.date}</div>
+            <div style="font-size:0.75rem; color:#8b949e; margin-bottom:3px;">${m.sender} (${m.date})</div>
             <div>${m.text}</div>
         `;
-        msgBox.appendChild(div);
+        box.appendChild(div);
     });
-    msgBox.scrollTop = msgBox.scrollHeight;
+    box.scrollTop = box.scrollHeight;
 }
 
 function addTicketReply() {
     const input = document.getElementById('ticket-reply-input');
     const text = input.value.trim();
-    if (text === '' || !activeTicketId) return;
+    if (!text || !activeTicketId) return;
 
     const ticket = tickets.find(t => t.id === activeTicketId);
     if (ticket) {
@@ -305,7 +284,7 @@ function updateTicketStatus() {
     if (ticket) {
         ticket.status = newStatus;
         localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
-        alert("Statut mis à jour : " + newStatus);
+        alert("Statut changé pour : " + newStatus);
     }
 }
 
@@ -319,17 +298,14 @@ function getStatusColor(status) {
     }
 }
 
-// -------------------------------------------------------------
-// 4. PANNEAU ADMIN
-// -------------------------------------------------------------
+// Admin PIN
 function accessAdmin() {
-    const pin = prompt("Entrez le code secret Administrateur :");
+    const pin = prompt("Entrez le code Admin (1234) :");
     if (pin === ADMIN_PIN) {
-        if (!currentUser) currentUser = { email: "admin@rootai.com", isAdmin: true };
-        currentUser.isAdmin = true;
+        currentUser = { email: "admin@rootai.com", isAdmin: true };
         localStorage.setItem('rootai_user', JSON.stringify(currentUser));
         updateUserUI();
-        alert("🔓 Mode Admin activé ! Vous avez accès à l'ensemble des tickets.");
+        alert("🔓 Connecté en tant qu'ADMIN ! Tous les tickets sont visibles.");
         showPage('support');
         renderTickets();
     } else if (pin !== null) {
