@@ -8,7 +8,7 @@ let tickets = JSON.parse(localStorage.getItem('rootai_tickets')) || [];
 let activeTicketId = null;
 
 let conversationHistory = [
-    { role: "system", content: "Tu es RootAI, une IA utile, intelligente et dynamique." }
+    { role: "system", content: "Tu es Rootify, une IA utile, intelligente et dynamique." }
 ];
 
 // Navigation entre les pages
@@ -91,7 +91,7 @@ async function sendMessage() {
     }
 
     conversationHistory.push({ role: "user", content: text });
-    const botMsg = appendMessage("RootAI réfléchit... 🧠", 'bot');
+    const botMsg = appendMessage("Rootify réfléchit... 🧠", 'bot');
     updateRootSpeech("Je cherche la réponse... 🧐");
 
     try {
