@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RootAI - Support & Chatbot</title>
+    <title>Rootify - Support & Chatbot</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <!-- NAVBAR -->
     <nav>
-        <div class="logo" onclick="showPage('chat')">RootAI 🤖</div>
+        <div class="logo" onclick="showPage('chat')">Rootify 🤖</div>
         <div id="user-badge" style="font-size:0.85rem;"></div>
         <ul class="nav-links">
             <li><a href="#" id="link-chat" class="active" onclick="showPage('chat')">IA Chat</a></li>
@@ -26,11 +26,11 @@
     <main id="page-chat" class="page active-page">
         <div class="chat-container">
             <div class="chat-header">
-                <span>RootAI Assistant</span>
+                <span>Rootify Assistant</span>
                 <span style="font-size: 0.8rem; color: #38bdf8;">● En ligne</span>
             </div>
             <div class="chat-box" id="chat-box">
-                <div class="message bot">Bonjour ! Je suis RootAI. Pose-moi une question ou écris `/image` pour générer un visuel.</div>
+                <div class="message bot">Bonjour ! Je suis Rootify. Pose-moi une question ou écris `/image` pour générer un visuel.</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" id="user-input" placeholder="Écris ton message ici..." onkeypress="handleKeyPress(event)">
