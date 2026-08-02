@@ -1,7 +1,7 @@
-// 🔑 Mets ta clé Groq ici (ex: "gsk_abcd1234...")
-const API_KEY = "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"; 
-
 const ADMIN_PIN = "1234";
+
+// URL de ton Worker Cloudflare (Proxy sécurisé sans clé API exposée)
+const WORKER_URL = "https://rootai.bonjour7858.workers.dev";
 
 let currentUser = JSON.parse(localStorage.getItem('rootai_user')) || null;
 let tickets = JSON.parse(localStorage.getItem('rootai_tickets')) || [];
@@ -11,7 +11,7 @@ let conversationHistory = [
     { role: "system", content: "Tu es RootAI, une IA utile, intelligente et dynamique." }
 ];
 
-// Navigation
+// Navigation entre les pages
 function showPage(pageName) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
     document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
@@ -66,8 +66,16 @@ function updateUserUI() {
     }
 }
 
+// Bulle de dialogue de la mascotte Root
+function updateRootSpeech(message) {
+    const statusEl = document.getElementById('root-status');
+    if (statusEl) {
+        statusEl.textContent = `« ${message} »`;
+    }
+}
+
 // -------------------------------------------------------------
-// CHATBOT IA & GÉNÉRATEUR D'IMAGES HD BOOSTÉ 🎨
+// CHATBOT IA & GENERATEUR D'IMAGES
 // -------------------------------------------------------------
 async function sendMessage() {
     const input = document.getElementById('user-input');
@@ -84,12 +92,13 @@ async function sendMessage() {
 
     conversationHistory.push({ role: "user", content: text });
     const botMsg = appendMessage("RootAI réfléchit... 🧠", 'bot');
+    updateRootSpeech("Je cherche la réponse... 🧐");
 
     try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        // Envoi au proxy Cloudflare (qui injecte la clé de manière sécurisée)
+        const response = await fetch(WORKER_URL, {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${API_KEY}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -104,11 +113,14 @@ async function sendMessage() {
             const reply = data.choices[0].message.content;
             botMsg.textContent = reply;
             conversationHistory.push({ role: "assistant", content: reply });
+            updateRootSpeech("Et voilà ! Autre chose ? 🧡");
         } else {
-            botMsg.textContent = "⚠️ Erreur API : Vérifiez votre clé Groq.";
+            botMsg.textContent = "⚠️ Erreur de réponse de l'IA.";
+            updateRootSpeech("Oups... Un petit souci de connexion !");
         }
     } catch (err) {
         botMsg.textContent = "⚠️ Erreur de connexion au serveur.";
+        updateRootSpeech("Impossible de contacter le serveur.");
     }
 }
 
@@ -121,25 +133,26 @@ function triggerImageGen() {
 
 function generateImage(promptText) {
     const botMsg = appendMessage("🎨 Génération HD en cours...", 'bot');
+    updateRootSpeech("Je prépare ton image HD... 🎨");
     
-    // 🚀 BOOSTER DE QUALITÉ : On ajoute des mots-clés d'amélioration de style automatique
     const enhancedPrompt = `${promptText}, highly detailed, 8k resolution, cinematic lighting, photorealistic, masterpiece, Unreal Engine 5 render`;
     const encodedPrompt = encodeURIComponent(enhancedPrompt);
     
-    // Utilisation du modèle 'flux' pour une qualité d'image nettement supérieure
     const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=768&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}`;
 
     const img = document.createElement('img');
     img.src = imageUrl;
-    img.style.cssText = "max-width:100%; border-radius:12px; margin-top:10px; border:2px solid #a855f7; box-shadow: 0 4px 15px rgba(0,0,0,0.5);";
+    img.style.cssText = "max-width:100%; border-radius:12px; margin-top:10px; border:2px solid #ff6b00; box-shadow: 0 4px 15px rgba(0,0,0,0.5);";
     
     img.onload = () => {
-        botMsg.textContent = "✨ Voici votre création en Haute Définition :";
+        botMsg.textContent = "✨ Voici votre création :";
         botMsg.appendChild(document.createElement('br'));
         botMsg.appendChild(img);
+        updateRootSpeech("Regarde cette merveille ! 🧡");
     };
     img.onerror = () => {
-        botMsg.textContent = "Impossible de générer l'image HD pour l'instant. Réessayez dans un instant !";
+        botMsg.textContent = "Impossible de générer l'image pour l'instant.";
+        updateRootSpeech("Désolé, l'image n'a pas pu charger...");
     };
 }
 
@@ -156,7 +169,7 @@ function appendMessage(text, type) {
 function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 // -------------------------------------------------------------
-// SYSTEME DE TICKETS PRIVÉS (AUTEUR & ADMIN)
+// SYSTEME DE TICKETS PRIVÉS
 // -------------------------------------------------------------
 function createTicket(e) {
     e.preventDefault();
