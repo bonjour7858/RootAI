@@ -1,9 +1,17 @@
-// --- ETAT GLOBAL ---
+// ==========================================
+// ⚙️ CONFIGURATION & ETAT GLOBAL
+// ==========================================
+
+// ⚠️ Remplace par l'URL exacte de ton Cloudflare Worker !
+const WORKER_URL = 'https://rootai.bonjour7858.workers.dev/';
+
 let currentUser = JSON.parse(localStorage.getItem('rootify_user')) || { email: 'invité@rootify.com', role: 'user', isVip: false };
 let currentChatId = null;
 let currentTicketId = null;
 
-// --- INITIALISATION ---
+// ==========================================
+// 🚀 INITIALISATION DU SITE
+// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     updateUserUI();
     renderChatHistoryList();
@@ -11,7 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTickets();
 });
 
-// --- NAVIGATION ---
+// ==========================================
+// 🧭 NAVIGATION ENTRE LES PAGES
+// ==========================================
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -23,7 +33,9 @@ function showPage(pageId) {
     if (targetLink) targetLink.classList.add('active');
 }
 
-// --- AUTHENTIFICATION ---
+// ==========================================
+// 🔐 AUTHENTIFICATION & ROLES
+// ==========================================
 function handleAuth(event) {
     event.preventDefault();
     const email = document.getElementById('auth-email').value;
@@ -36,6 +48,7 @@ function handleAuth(event) {
 
     localStorage.setItem('rootify_user', JSON.stringify(currentUser));
     updateUserUI();
+    renderTickets(); // Mettre à jour l'affichage des tickets selon le rôle
     showPage('chat');
 }
 
@@ -57,7 +70,9 @@ function updateUserUI() {
     authLink.textContent = currentUser.email.includes('invité') ? 'Connexion' : 'Profil';
 }
 
-// --- MODULE CHAT IA ---
+// ==========================================
+// 💬 MODULE CHAT IA (VIA CLOUDFLARE WORKER)
+// ==========================================
 function startNewChat() {
     currentChatId = Date.now().toString();
     const chatBox = document.getElementById('chat-box');
@@ -70,18 +85,20 @@ function startNewChat() {
     }
 
     renderChatHistoryList();
-    addBotMessage("Bonjour ! Je suis Rootify. Comment puis-je t'aider aujourd'hui ?");
+    addBotMessageUI("Bonjour ! Je suis Rootify. Comment puis-je t'aider aujourd'hui ?");
 }
 
-function sendMessage() {
+async function sendMessage() {
     const input = document.getElementById('user-input');
     const text = input.value.trim();
     if (!text) return;
 
-    addUserMessage(text);
+    // 1. Ajouter le message utilisateur dans le DOM et le Storage
+    addUserMessageUI(text);
+    saveChatMessage('user', text);
     input.value = '';
 
-    // Définir un titre automatique sur le 1er message
+    // 2. Mettre à jour le titre du chat s'il s'agit du début
     let history = getChatsFromStorage();
     if (history[currentChatId] && history[currentChatId].messages.length <= 2) {
         history[currentChatId].title = text.substring(0, 20) + '...';
@@ -89,34 +106,75 @@ function sendMessage() {
         renderChatHistoryList();
     }
 
-    // Réponse de simulation (Groq ou Réponse automatique)
-    setTimeout(() => {
-        addBotMessage(`J'ai bien reçu ton message : "${text}". Comment souhaitez-vous qu'on poursuive ?`);
-    }, 800);
+    // 3. Indicateur de chargement
+    const chatBox = document.getElementById('chat-box');
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'message bot';
+    loadingMsg.id = 'loading-indicator';
+    loadingMsg.textContent = 'Rootify réfléchit... 🧠';
+    chatBox.appendChild(loadingMsg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        // 4. Appel de ton Cloudflare Worker
+        const response = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages: [
+                    { role: "system", content: "Tu es Rootify, une IA française intelligente, dynamique, amicale et super efficace." },
+                    { role: "user", content: text }
+                ]
+            })
+        });
+
+        const data = await response.json();
+
+        // Enlever l'indicateur
+        const loader = document.getElementById('loading-indicator');
+        if (loader) chatBox.removeChild(loader);
+
+        let aiReply = "Désolé, je n'ai pas pu comprendre la réponse.";
+
+        if (data.choices && data.choices[0]) {
+            aiReply = data.choices[0].message.content;
+        } else if (data.reply) {
+            aiReply = data.reply;
+        }
+
+        addBotMessageUI(aiReply);
+        saveChatMessage('bot', aiReply);
+
+    } catch (error) {
+        const loader = document.getElementById('loading-indicator');
+        if (loader) chatBox.removeChild(loader);
+
+        const errorMsg = "Erreur de connexion au Worker Cloudflare. Vérifie que WORKER_URL est correcte.";
+        addBotMessageUI(errorMsg);
+        console.error("Erreur Chat:", error);
+    }
 }
 
 function handleKeyPress(e) {
     if (e.key === 'Enter') sendMessage();
 }
 
-function addUserMessage(text) {
+function addUserMessageUI(text) {
     const chatBox = document.getElementById('chat-box');
     const msg = document.createElement('div');
     msg.className = 'message user';
     msg.textContent = text;
     chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight;
-    saveChatMessage('user', text);
 }
 
-function addBotMessage(text) {
+function addBotMessageUI(text) {
     const chatBox = document.getElementById('chat-box');
     const msg = document.createElement('div');
     msg.className = 'message bot';
     msg.textContent = text;
     chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight;
-    saveChatMessage('bot', text);
 }
 
 function saveChatMessage(role, text) {
@@ -162,22 +220,6 @@ function loadChat(id) {
     renderChatHistoryList();
 }
 
-function addUserMessageUI(text) {
-    const chatBox = document.getElementById('chat-box');
-    const msg = document.createElement('div');
-    msg.className = 'message user';
-    msg.textContent = text;
-    chatBox.appendChild(msg);
-}
-
-function addBotMessageUI(text) {
-    const chatBox = document.getElementById('chat-box');
-    const msg = document.createElement('div');
-    msg.className = 'message bot';
-    msg.textContent = text;
-    chatBox.appendChild(msg);
-}
-
 function deleteChat(id, e) {
     e.stopPropagation();
     let history = getChatsFromStorage();
@@ -187,7 +229,9 @@ function deleteChat(id, e) {
     else renderChatHistoryList();
 }
 
-// --- GENERATION D'IMAGE ---
+// ==========================================
+// 🎨 GENERATION D'IMAGE HD
+// ==========================================
 function triggerImageGen() {
     const prompt = document.getElementById('img-prompt-input').value;
     const resBox = document.getElementById('image-result');
@@ -199,7 +243,9 @@ function triggerImageGen() {
     }, 1500);
 }
 
-// --- MODULE SUPPORT & TICKETS ---
+// ==========================================
+// 🎫 MODULE SUPPORT & TICKETS
+// ==========================================
 function createTicket(e) {
     e.preventDefault();
     const subject = document.getElementById('ticket-subject').value;
@@ -232,7 +278,7 @@ function renderTickets() {
 
     let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
 
-    // L'Admin voit tous les tickets, l'utilisateur voit seulement les siens
+    // L'Admin voit tout, l'utilisateur normal ne voit que ses propres tickets
     if (currentUser.role !== 'admin') {
         tickets = tickets.filter(t => t.user === currentUser.email);
     }
@@ -270,7 +316,6 @@ function openTicketDetail(id) {
     document.getElementById('detail-ticket-subject').textContent = ticket.subject;
     document.getElementById('detail-ticket-user').textContent = ticket.user;
     
-    // Remplir le selecteur de statut
     const statusSelect = document.getElementById('detail-ticket-status');
     statusSelect.value = ticket.status || 'En attente';
 
@@ -328,7 +373,9 @@ function handleTicketReplyKeyPress(e) {
     if (e.key === 'Enter') addTicketReply();
 }
 
-// --- ACHAT ET MODAL DE TEST ---
+// ==========================================
+// 💳 ACCES VIP & SIMULATION D'ACHAT
+// ==========================================
 function openCheckoutModal() {
     document.getElementById('checkout-modal').style.display = 'flex';
 }
