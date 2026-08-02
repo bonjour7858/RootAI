@@ -1,275 +1,281 @@
-const ADMIN_PIN = "1234";
+// --- ETAT GLOBAL ---
+let currentUser = JSON.parse(localStorage.getItem('rootify_user')) || { email: 'invité@rootify.com', role: 'user', isVip: false };
+let currentChatId = null;
+let currentTicketId = null;
 
-// URL de ton Worker Cloudflare (Proxy sécurisé sans clé API exposée)
-const WORKER_URL = "https://rootai.bonjour7858.workers.dev";
-
-let currentUser = JSON.parse(localStorage.getItem('rootai_user')) || null;
-let tickets = JSON.parse(localStorage.getItem('rootai_tickets')) || [];
-let activeTicketId = null;
-
-let conversationHistory = [
-    { role: "system", content: "Tu es Rootify, une IA utile, intelligente et dynamique." }
-];
-
-// Navigation entre les pages
-function showPage(pageName) {
-    document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
-    document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
-    
-    const targetPage = document.getElementById('page-' + pageName);
-    if(targetPage) targetPage.classList.add('active-page');
-    
-    const targetLink = document.getElementById('link-' + pageName);
-    if (targetLink) targetLink.classList.add('active');
-
+// --- INITIALISATION ---
+document.addEventListener("DOMContentLoaded", () => {
     updateUserUI();
+    renderChatHistoryList();
+    startNewChat();
+    renderTickets();
+});
+
+// --- NAVIGATION ---
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+    const targetPage = document.getElementById(`page-${pageId}`);
+    const targetLink = document.getElementById(`link-${pageId}`);
+
+    if (targetPage) targetPage.classList.add('active-page');
+    if (targetLink) targetLink.classList.add('active');
 }
 
-// Authentification
-function handleAuth(e) {
-    e.preventDefault();
-    const email = document.getElementById('auth-email').value.trim();
-    currentUser = { email: email, isPremium: false, isAdmin: false };
-    localStorage.setItem('rootai_user', JSON.stringify(currentUser));
-    alert('✅ Connecté en tant que : ' + email);
+// --- AUTHENTIFICATION ---
+function handleAuth(event) {
+    event.preventDefault();
+    const email = document.getElementById('auth-email').value;
+    
+    currentUser = {
+        email: email,
+        role: email.toLowerCase() === 'admin@rootai.com' ? 'admin' : 'user',
+        isVip: false
+    };
+
+    localStorage.setItem('rootify_user', JSON.stringify(currentUser));
     updateUserUI();
     showPage('chat');
-}
-
-function logout() {
-    currentUser = null;
-    localStorage.removeItem('rootai_user');
-    updateUserUI();
-    alert('Déconnecté.');
-    showPage('auth');
 }
 
 function updateUserUI() {
+    const badge = document.getElementById('user-badge');
     const authLink = document.getElementById('link-auth');
-    const userBadge = document.getElementById('user-badge');
-    
-    if (currentUser) {
-        if(authLink) {
-            authLink.textContent = "Déconnexion";
-            authLink.onclick = logout;
-        }
-        if (userBadge) {
-            const roleTag = currentUser.isAdmin ? '<b style="color:#ef4444;">[ADMIN]</b>' : '[MEMBRE]';
-            userBadge.innerHTML = `👤 ${currentUser.email} ${roleTag}`;
-        }
+
+    if (currentUser.role === 'admin') {
+        badge.textContent = `👑 Admin (${currentUser.email})`;
+        badge.style.color = '#ef4444';
+    } else if (currentUser.isVip) {
+        badge.textContent = `⭐ VIP (${currentUser.email})`;
+        badge.style.color = '#eab308';
     } else {
-        if(authLink) {
-            authLink.textContent = "Connexion";
-            authLink.onclick = () => showPage('auth');
-        }
-        if (userBadge) userBadge.innerHTML = "";
+        badge.textContent = currentUser.email;
+        badge.style.color = '#ff6b00';
     }
+
+    authLink.textContent = currentUser.email.includes('invité') ? 'Connexion' : 'Profil';
 }
 
-// Bulle de dialogue de la mascotte Root
-function updateRootSpeech(message) {
-    const statusEl = document.getElementById('root-status');
-    if (statusEl) {
-        statusEl.textContent = `« ${message} »`;
+// --- MODULE CHAT IA ---
+function startNewChat() {
+    currentChatId = Date.now().toString();
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) chatBox.innerHTML = '';
+    
+    let history = getChatsFromStorage();
+    if (!history[currentChatId]) {
+        history[currentChatId] = { title: 'Nouvelle discussion', messages: [] };
+        localStorage.setItem('rootify_chats', JSON.stringify(history));
     }
+
+    renderChatHistoryList();
+    addBotMessage("Bonjour ! Je suis Rootify. Comment puis-je t'aider aujourd'hui ?");
 }
 
-// -------------------------------------------------------------
-// CHATBOT IA & GENERATEUR D'IMAGES
-// -------------------------------------------------------------
-async function sendMessage() {
+function sendMessage() {
     const input = document.getElementById('user-input');
     const text = input.value.trim();
-    if (text === '') return;
+    if (!text) return;
 
-    appendMessage(text, 'user');
+    addUserMessage(text);
     input.value = '';
 
-    if (text.toLowerCase().startsWith('/image')) {
-        generateImage(text.replace('/image', '').trim());
-        return;
+    // Définir un titre automatique sur le 1er message
+    let history = getChatsFromStorage();
+    if (history[currentChatId] && history[currentChatId].messages.length <= 2) {
+        history[currentChatId].title = text.substring(0, 20) + '...';
+        localStorage.setItem('rootify_chats', JSON.stringify(history));
+        renderChatHistoryList();
     }
 
-    conversationHistory.push({ role: "user", content: text });
-    const botMsg = appendMessage("Rootify réfléchit... 🧠", 'bot');
-    updateRootSpeech("Je cherche la réponse... 🧐");
-
-    try {
-        // Envoi au proxy Cloudflare (qui injecte la clé de manière sécurisée)
-        const response = await fetch(WORKER_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                messages: conversationHistory,
-                model: "llama-3.1-8b-instant"
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.choices && data.choices[0]) {
-            const reply = data.choices[0].message.content;
-            botMsg.textContent = reply;
-            conversationHistory.push({ role: "assistant", content: reply });
-            updateRootSpeech("Et voilà ! Autre chose ? 🧡");
-        } else {
-            botMsg.textContent = "⚠️ Erreur de réponse de l'IA.";
-            updateRootSpeech("Oups... Un petit souci de connexion !");
-        }
-    } catch (err) {
-        botMsg.textContent = "⚠️ Erreur de connexion au serveur.";
-        updateRootSpeech("Impossible de contacter le serveur.");
-    }
+    // Réponse de simulation (Groq ou Réponse automatique)
+    setTimeout(() => {
+        addBotMessage(`J'ai bien reçu ton message : "${text}". Comment souhaitez-vous qu'on poursuive ?`);
+    }, 800);
 }
 
-function triggerImageGen() {
-    const prompt = document.getElementById('img-prompt-input').value.trim();
-    if (!prompt) return;
-    showPage('chat');
-    generateImage(prompt);
+function handleKeyPress(e) {
+    if (e.key === 'Enter') sendMessage();
 }
 
-function generateImage(promptText) {
-    const botMsg = appendMessage("🎨 Génération HD en cours...", 'bot');
-    updateRootSpeech("Je prépare ton image HD... 🎨");
-    
-    const enhancedPrompt = `${promptText}, highly detailed, 8k resolution, cinematic lighting, photorealistic, masterpiece, Unreal Engine 5 render`;
-    const encodedPrompt = encodeURIComponent(enhancedPrompt);
-    
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=768&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}`;
-
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.style.cssText = "max-width:100%; border-radius:12px; margin-top:10px; border:2px solid #ff6b00; box-shadow: 0 4px 15px rgba(0,0,0,0.5);";
-    
-    img.onload = () => {
-        botMsg.textContent = "✨ Voici votre création :";
-        botMsg.appendChild(document.createElement('br'));
-        botMsg.appendChild(img);
-        updateRootSpeech("Regarde cette merveille ! 🧡");
-    };
-    img.onerror = () => {
-        botMsg.textContent = "Impossible de générer l'image pour l'instant.";
-        updateRootSpeech("Désolé, l'image n'a pas pu charger...");
-    };
-}
-
-function appendMessage(text, type) {
+function addUserMessage(text) {
     const chatBox = document.getElementById('chat-box');
     const msg = document.createElement('div');
-    msg.className = `message ${type}`;
+    msg.className = 'message user';
     msg.textContent = text;
     chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight;
-    return msg;
+    saveChatMessage('user', text);
 }
 
-function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
-
-// -------------------------------------------------------------
-// SYSTEME DE TICKETS PRIVÉS
-// -------------------------------------------------------------
-function createTicket(e) {
-    e.preventDefault();
-    if (!currentUser) {
-        alert("Connectez-vous pour ouvrir un ticket !");
-        showPage('auth');
-        return;
-    }
-
-    const subject = document.getElementById('ticket-subject').value;
-    const priority = document.getElementById('ticket-priority').value;
-    const desc = document.getElementById('ticket-desc').value;
-
-    const newTicket = {
-        id: Math.floor(100000 + Math.random() * 900000),
-        subject: subject,
-        priority: priority,
-        status: "En attente",
-        user: currentUser.email,
-        messages: [
-            { sender: currentUser.email, text: desc, date: new Date().toLocaleString() }
-        ]
-    };
-
-    tickets.unshift(newTicket);
-    localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
-    
-    document.getElementById('ticket-subject').value = '';
-    document.getElementById('ticket-desc').value = '';
-    alert("Ticket créé ! ID: #" + newTicket.id);
-    renderTickets();
+function addBotMessage(text) {
+    const chatBox = document.getElementById('chat-box');
+    const msg = document.createElement('div');
+    msg.className = 'message bot';
+    msg.textContent = text;
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    saveChatMessage('bot', text);
 }
 
-function renderTickets() {
-    const list = document.getElementById('ticket-list');
+function saveChatMessage(role, text) {
+    let history = getChatsFromStorage();
+    if (!history[currentChatId]) history[currentChatId] = { title: 'Discussion', messages: [] };
+    history[currentChatId].messages.push({ role, text });
+    localStorage.setItem('rootify_chats', JSON.stringify(history));
+}
+
+function getChatsFromStorage() {
+    return JSON.parse(localStorage.getItem('rootify_chats')) || {};
+}
+
+function renderChatHistoryList() {
+    const list = document.getElementById('chat-history-list');
     if (!list) return;
     list.innerHTML = '';
 
-    const visibleTickets = (currentUser && currentUser.isAdmin)
-        ? tickets
-        : tickets.filter(t => currentUser && t.user === currentUser.email);
-
-    if (visibleTickets.length === 0) {
-        list.innerHTML = "<p style='color:#8b949e;'>Aucun ticket disponible.</p>";
-        return;
-    }
-
-    visibleTickets.forEach(t => {
+    let history = getChatsFromStorage();
+    Object.keys(history).reverse().forEach(id => {
         const item = document.createElement('div');
-        item.style.cssText = "background:#21262d; padding:15px; border-radius:8px; margin-bottom:10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; border:1px solid #30363d;";
-        item.onclick = () => openTicketPage(t.id);
-        
+        item.className = `history-item ${id === currentChatId ? 'active' : ''}`;
         item.innerHTML = `
-            <div>
-                <strong>#${t.id} - ${t.subject}</strong>
-                <p style="font-size:0.8rem; color:#8b949e; margin-top:3px;">Par: ${t.user} | Priorité: ${t.priority}</p>
-            </div>
-            <span style="padding:4px 8px; border-radius:4px; font-size:0.8rem; background:${getStatusColor(t.status)}; color:white;">${t.status}</span>
+            <span onclick="loadChat('${id}')">💬 ${history[id].title}</span>
+            <button class="btn-danger" onclick="deleteChat('${id}', event)">✕</button>
         `;
         list.appendChild(item);
     });
 }
 
-function openTicketPage(ticketId) {
-    const ticket = tickets.find(t => t.id === ticketId);
-    if (!ticket) return;
+function loadChat(id) {
+    currentChatId = id;
+    const chatBox = document.getElementById('chat-box');
+    chatBox.innerHTML = '';
 
-    const isOwner = currentUser && currentUser.email === ticket.user;
-    const isAdmin = currentUser && currentUser.isAdmin;
+    let history = getChatsFromStorage();
+    if (history[id]) {
+        history[id].messages.forEach(m => {
+            if (m.role === 'user') addUserMessageUI(m.text);
+            else addBotMessageUI(m.text);
+        });
+    }
+    renderChatHistoryList();
+}
 
-    if (!isOwner && !isAdmin) {
-        alert("🔒 Accès interdit : Vous n'êtes ni l'auteur de ce ticket ni administrateur.");
+function addUserMessageUI(text) {
+    const chatBox = document.getElementById('chat-box');
+    const msg = document.createElement('div');
+    msg.className = 'message user';
+    msg.textContent = text;
+    chatBox.appendChild(msg);
+}
+
+function addBotMessageUI(text) {
+    const chatBox = document.getElementById('chat-box');
+    const msg = document.createElement('div');
+    msg.className = 'message bot';
+    msg.textContent = text;
+    chatBox.appendChild(msg);
+}
+
+function deleteChat(id, e) {
+    e.stopPropagation();
+    let history = getChatsFromStorage();
+    delete history[id];
+    localStorage.setItem('rootify_chats', JSON.stringify(history));
+    if (currentChatId === id) startNewChat();
+    else renderChatHistoryList();
+}
+
+// --- GENERATION D'IMAGE ---
+function triggerImageGen() {
+    const prompt = document.getElementById('img-prompt-input').value;
+    const resBox = document.getElementById('image-result');
+    if (!prompt) return;
+
+    resBox.innerHTML = '<p>🎨 Génération en cours par Rootify IA...</p>';
+    setTimeout(() => {
+        resBox.innerHTML = `<img src="https://picsum.photos/600/400?random=${Math.floor(Math.random()*1000)}" alt="Image générée">`;
+    }, 1500);
+}
+
+// --- MODULE SUPPORT & TICKETS ---
+function createTicket(e) {
+    e.preventDefault();
+    const subject = document.getElementById('ticket-subject').value;
+    const priority = document.getElementById('ticket-priority').value;
+    const desc = document.getElementById('ticket-desc').value;
+
+    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
+    const newTicket = {
+        id: Math.floor(1000 + Math.random() * 9000),
+        user: currentUser.email,
+        subject: subject,
+        priority: priority,
+        status: 'En attente',
+        messages: [{ sender: currentUser.email, text: desc }]
+    };
+
+    tickets.push(newTicket);
+    localStorage.setItem('rootify_tickets', JSON.stringify(tickets));
+
+    document.getElementById('ticket-subject').value = '';
+    document.getElementById('ticket-desc').value = '';
+
+    renderTickets();
+}
+
+function renderTickets() {
+    const container = document.getElementById('ticket-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
+
+    // L'Admin voit tous les tickets, l'utilisateur voit seulement les siens
+    if (currentUser.role !== 'admin') {
+        tickets = tickets.filter(t => t.user === currentUser.email);
+    }
+
+    if (tickets.length === 0) {
+        container.innerHTML = '<p style="color:#8b949e;">Aucun ticket ouvert.</p>';
         return;
     }
 
-    activeTicketId = ticketId;
-    showPage('ticket-detail');
+    tickets.reverse().forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'ticket-item';
+        item.onclick = () => openTicketDetail(t.id);
+        
+        const badgeClass = t.status.toLowerCase().replace(' ', '-');
+        item.innerHTML = `
+            <div>
+                <strong>#${t.id} - ${t.subject}</strong>
+                <br><small style="color:#8b949e;">Par: ${t.user}</small>
+            </div>
+            <span class="badge ${badgeClass}">${t.status}</span>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function openTicketDetail(id) {
+    currentTicketId = id;
+    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
+    let ticket = tickets.find(t => t.id === id);
+
+    if (!ticket) return;
 
     document.getElementById('detail-ticket-id').textContent = ticket.id;
     document.getElementById('detail-ticket-subject').textContent = ticket.subject;
     document.getElementById('detail-ticket-user').textContent = ticket.user;
     
+    // Remplir le selecteur de statut
     const statusSelect = document.getElementById('detail-ticket-status');
-    statusSelect.value = ticket.status;
-    statusSelect.disabled = !isAdmin;
-
-    const replyInput = document.getElementById('ticket-reply-input');
-    const replyButton = document.querySelector('#page-ticket-detail button.btn-action');
-    
-    if (replyInput) {
-        replyInput.disabled = false;
-        replyInput.placeholder = "Écrire une réponse dans le ticket...";
-    }
-    if (replyButton) {
-        replyButton.disabled = false;
-        replyButton.style.opacity = "1";
-        replyButton.style.cursor = "pointer";
-    }
+    statusSelect.value = ticket.status || 'En attente';
 
     renderTicketMessages(ticket);
+    showPage('ticket-detail');
 }
 
 function renderTicketMessages(ticket) {
@@ -277,72 +283,65 @@ function renderTicketMessages(ticket) {
     box.innerHTML = '';
 
     ticket.messages.forEach(m => {
-        const isMe = currentUser && m.sender === currentUser.email;
         const div = document.createElement('div');
-        div.style.cssText = `max-width:80%; padding:10px; border-radius:8px; margin-bottom:10px; ${isMe ? 'background:#238636; margin-left:auto;' : 'background:#21262d; margin-right:auto; border:1px solid #30363d;'}`;
-        div.innerHTML = `
-            <div style="font-size:0.75rem; color:#8b949e; margin-bottom:3px;">${m.sender} (${m.date})</div>
-            <div>${m.text}</div>
-        `;
+        div.style.padding = '8px 12px';
+        div.style.borderRadius = '6px';
+        div.style.backgroundColor = m.sender === currentUser.email ? '#ff6b0022' : '#21262d';
+        div.style.border = '1px solid #30363d';
+        div.innerHTML = `<strong>${m.sender} :</strong> ${m.text}`;
         box.appendChild(div);
     });
     box.scrollTop = box.scrollHeight;
 }
 
+function updateTicketStatus() {
+    if (!currentTicketId) return;
+
+    const newStatus = document.getElementById('detail-ticket-status').value;
+    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
+
+    const index = tickets.findIndex(t => t.id === currentTicketId);
+    if (index !== -1) {
+        tickets[index].status = newStatus;
+        localStorage.setItem('rootify_tickets', JSON.stringify(tickets));
+        renderTickets();
+    }
+}
+
 function addTicketReply() {
     const input = document.getElementById('ticket-reply-input');
     const text = input.value.trim();
-    if (!text || !activeTicketId) return;
+    if (!text || !currentTicketId) return;
 
-    const ticket = tickets.find(t => t.id === activeTicketId);
-    if (ticket) {
-        ticket.messages.push({
-            sender: currentUser ? currentUser.email : "Visiteur",
-            text: text,
-            date: new Date().toLocaleString()
-        });
-        localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
+    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
+    const index = tickets.findIndex(t => t.id === currentTicketId);
+
+    if (index !== -1) {
+        tickets[index].messages.push({ sender: currentUser.email, text: text });
+        localStorage.setItem('rootify_tickets', JSON.stringify(tickets));
+        renderTicketMessages(tickets[index]);
         input.value = '';
-        renderTicketMessages(ticket);
     }
 }
 
-function updateTicketStatus() {
-    if (!activeTicketId || !currentUser || !currentUser.isAdmin) return;
-    const newStatus = document.getElementById('detail-ticket-status').value;
-    const ticket = tickets.find(t => t.id === activeTicketId);
-    if (ticket) {
-        ticket.status = newStatus;
-        localStorage.setItem('rootai_tickets', JSON.stringify(tickets));
-        alert("Statut mis à jour : " + newStatus);
-    }
+function handleTicketReplyKeyPress(e) {
+    if (e.key === 'Enter') addTicketReply();
 }
 
-function getStatusColor(status) {
-    switch(status) {
-        case 'En attente': return '#eab308';
-        case 'En cours': return '#3b82f6';
-        case 'Résolu': return '#22c55e';
-        case 'Fermé': return '#ef4444';
-        default: return '#6b7280';
-    }
+// --- ACHAT ET MODAL DE TEST ---
+function openCheckoutModal() {
+    document.getElementById('checkout-modal').style.display = 'flex';
 }
 
-function accessAdmin() {
-    const pin = prompt("Entrez le code Admin (1234) :");
-    if (pin === ADMIN_PIN) {
-        currentUser = { email: "admin@rootai.com", isAdmin: true };
-        localStorage.setItem('rootai_user', JSON.stringify(currentUser));
-        updateUserUI();
-        alert("🔓 Connecté en tant qu'ADMIN !");
-        showPage('support');
-        renderTickets();
-    } else if (pin !== null) {
-        alert("Code PIN incorrect !");
-    }
+function closeCheckoutModal() {
+    document.getElementById('checkout-modal').style.display = 'none';
 }
 
-window.onload = () => {
+function processTestPayment(e) {
+    e.preventDefault();
+    currentUser.isVip = true;
+    localStorage.setItem('rootify_user', JSON.stringify(currentUser));
     updateUserUI();
-    renderTickets();
-};
+    closeCheckoutModal();
+    alert("🎉 Bravo ! Votre compte est désormais VIP (Mode Test). Merci de votre soutien !");
+}
