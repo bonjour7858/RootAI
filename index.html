@@ -12,14 +12,13 @@
     <header class="navbar">
         <div class="logo" onclick="showPage('chat')">🤖 Rootify</div>
         <nav class="nav-links">
-            <a id="link-chat" class="active" onclick="showPage('chat')">💬 Chat IA</a>
-            <a id="link-image" onclick="showPage('image')">🎨 Image HD</a>
-            <a id="link-support" onclick="showPage('support')">🎫 Support</a>
-            <a id="link-premium" onclick="showPage('premium')">⭐ Premium</a>
-            <a id="link-auth" onclick="showPage('auth')">Connexion</a>
-            <a id="link-admin" onclick="accessAdmin()" style="color:#ef4444; font-weight:bold;">🔒 Admin</a>
+            <a id="link-chat" class="nav-btn active" onclick="showPage('chat')">💬 Chat IA</a>
+            <a id="link-image" class="nav-btn" onclick="showPage('image')">🎨 Image HD</a>
+            <a id="link-support" class="nav-btn" onclick="showPage('support')">🎫 Support</a>
+            <a id="link-premium" class="nav-btn" onclick="showPage('premium')">⭐ Premium</a>
+            <a id="link-auth" class="nav-btn" onclick="showPage('auth')">Connexion</a>
         </nav>
-        <div id="user-badge" class="user-badge"></div>
+        <div id="user-badge" class="user-badge">Invité</div>
     </header>
 
     <main class="container">
@@ -27,20 +26,18 @@
         <!-- ================= PAGE CHAT ================= -->
         <section id="page-chat" class="page active-page">
             <div class="chat-layout">
-                <!-- Sidebar Historique -->
                 <aside class="chat-sidebar">
-                    <button onclick="startNewChat()" class="btn-primary">+ Nouvelle conversation</button>
+                    <button onclick="startNewChat()" class="btn-primary full-width">+ Nouvelle conversation</button>
                     <h3>Historique</h3>
                     <div id="chat-history-list" class="history-list"></div>
                 </aside>
 
-                <!-- Zone de Chat principal -->
                 <div class="chat-main">
                     <div class="root-mascot">
                         <span class="avatar">🤖</span>
                         <div>
                             <strong>Rootify Assistant</strong> <span class="online-dot">● En ligne</span>
-                            <p id="root-status">« Pose-moi une question ou utilise /image ! »</p>
+                            <p id="root-status">« Pose-moi une question ou demande une création ! »</p>
                         </div>
                     </div>
 
@@ -58,15 +55,16 @@
         <section id="page-image" class="page">
             <div class="card center-content">
                 <h2>Générateur d'Images IA 🎨</h2>
-                <p>Décrivez l'image que vous souhaitez générer :</p>
+                <p>Décris l'image que tu souhaites générer :</p>
                 <div class="input-group">
                     <input type="text" id="img-prompt-input" placeholder="Ex: Un lion cyberpunk dans la jungle, 8k...">
                     <button onclick="triggerImageGen()" class="btn-primary">Générer</button>
                 </div>
+                <div id="image-result" class="image-result-box"></div>
             </div>
         </section>
 
-        <!-- ================= PAGE SUPPORT (TICKETS) ================= -->
+        <!-- ================= PAGE SUPPORT ================= -->
         <section id="page-support" class="page">
             <h2>Centre de Support 🎫</h2>
             
@@ -86,7 +84,7 @@
 
             <div class="card">
                 <h3>Vos Tickets</h3>
-                <div id="ticket-list"></div>
+                <div id="ticket-list" class="ticket-list-container"></div>
             </div>
         </section>
 
@@ -98,7 +96,7 @@
                 <p>Auteur : <strong id="detail-ticket-user"></strong></p>
                 
                 <div class="status-selector">
-                    <label>Statut :</label>
+                    <label for="detail-ticket-status">Statut du ticket :</label>
                     <select id="detail-ticket-status" onchange="updateTicketStatus()">
                         <option value="En attente">En attente</option>
                         <option value="En cours">En cours</option>
@@ -110,23 +108,27 @@
                 <div id="ticket-messages-box" class="messages-box"></div>
 
                 <div class="chat-input-area">
-                    <input type="text" id="ticket-reply-input" placeholder="Écrire une réponse...">
-                    <button onclick="addTicketReply()" class="btn-action btn-primary">Répondre</button>
+                    <input type="text" id="ticket-reply-input" placeholder="Écrire une réponse..." onkeypress="handleTicketReplyKeyPress(event)">
+                    <button onclick="addTicketReply()" class="btn-primary">Répondre</button>
                 </div>
             </div>
         </section>
 
-        <!-- ================= PAGE PREMIUM ================= -->
+        <!-- ================= PAGE PREMIUM & DON ================= -->
         <section id="page-premium" class="page">
             <div class="pricing-card">
-                <h2>Pass VIP ⭐</h2>
+                <h2>Pass VIP & Soutien ⭐</h2>
                 <div class="price">3€ <span>/ mois</span></div>
                 <ul>
-                    <li>✅ Accès prioritaire à Rootify</li>
-                    <li>✅ Génération d'images illimitée</li>
-                    <li>✅ Support client VIP</li>
+                    <li>✅ Accès prioritaire à Rootify IA</li>
+                    <li>✅ Génération d'images haute définition</li>
+                    <li>✅ Support client ultra-rapide</li>
+                    <li>✅ Soutien direct au développement</li>
                 </ul>
-                <button class="btn-primary">Devenir Premium</button>
+                <div class="action-buttons-group">
+                    <button onclick="openCheckoutModal()" class="btn-primary full-width">Tester la souscription (Test)</button>
+                    <a href="https://www.leetchi.com/" target="_blank" class="btn-leetchi full-width">🎁 Soutenir sur Leetchi</a>
+                </div>
             </div>
         </section>
 
@@ -134,14 +136,33 @@
         <section id="page-auth" class="page">
             <div class="card auth-card">
                 <h2>Connexion / Inscription</h2>
+                <p class="auth-hint">Utilise <strong>admin@rootai.com</strong> pour tester le rôle Admin !</p>
                 <form onsubmit="handleAuth(event)">
                     <input type="email" id="auth-email" placeholder="Votre adresse email" required>
-                    <button type="submit" class="btn-primary">Se connecter</button>
+                    <button type="submit" class="btn-primary full-width">Se connecter</button>
                 </form>
             </div>
         </section>
 
     </main>
+
+    <!-- ================= MODAL TEST DE PAIEMENT ================= -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeCheckoutModal()">&times;</span>
+            <h3>💳 Simulation d'Achat VIP</h3>
+            <p>Ceci est un environnement de test sécurisé.</p>
+            <form onsubmit="processTestPayment(event)">
+                <input type="text" placeholder="Nom sur la carte" value="Jean Dupont" required>
+                <input type="text" placeholder="Numéro de carte (Factice)" value="4242 •••• •••• 4242" required>
+                <div class="flex-row">
+                    <input type="text" placeholder="MM/AA" value="12/28" required>
+                    <input type="text" placeholder="CVC" value="123" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">Payer 3,00 € (Mode Test)</button>
+            </form>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
