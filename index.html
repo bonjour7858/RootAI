@@ -3,124 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rootify - Support & Chatbot</title>
+    <title>Rootify - IA & Support</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav>
-        <div class="logo" onclick="showPage('chat')">Rootify 🤖</div>
-        <div id="user-badge" style="font-size:0.85rem;"></div>
-        <ul class="nav-links">
-            <li><a href="#" id="link-chat" class="active" onclick="showPage('chat')">IA Chat</a></li>
-            <li><a href="#" id="link-image" onclick="showPage('image')">🎨 Créer Image</a></li>
-            <li><a href="#" id="link-support" onclick="showPage('support')">🎫 Support</a></li>
-            <li><a href="#" id="link-premium" class="btn-nav-premium" onclick="showPage('premium')">⭐ Premium (3€)</a></li>
-            <li><a href="#" id="link-auth" onclick="showPage('auth')">Connexion</a></li>
-            <li><a href="#" style="color:#ef4444; font-weight:bold;" onclick="accessAdmin()">🔒 Admin</a></li>
-        </ul>
-    </nav>
+    <!-- Barre de Navigation -->
+    <header class="navbar">
+        <div class="logo" onclick="showPage('chat')">🤖 Rootify</div>
+        <nav class="nav-links">
+            <a id="link-chat" class="active" onclick="showPage('chat')">💬 Chat IA</a>
+            <a id="link-image" onclick="showPage('image')">🎨 Image HD</a>
+            <a id="link-support" onclick="showPage('support')">🎫 Support</a>
+            <a id="link-premium" onclick="showPage('premium')">⭐ Premium</a>
+            <a id="link-auth" onclick="showPage('auth')">Connexion</a>
+            <a id="link-admin" onclick="accessAdmin()" style="color:#ef4444; font-weight:bold;">🔒 Admin</a>
+        </nav>
+        <div id="user-badge" class="user-badge"></div>
+    </header>
 
-    <!-- 1. IA CHAT -->
-    <main id="page-chat" class="page active-page">
-        <div class="chat-container">
-            <div class="chat-header">
-                <span>Rootify Assistant</span>
-                <span style="font-size: 0.8rem; color: #38bdf8;">● En ligne</span>
-            </div>
-            <div class="chat-box" id="chat-box">
-                <div class="message bot">Bonjour ! Je suis Rootify. Pose-moi une question ou écris `/image` pour générer un visuel.</div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="user-input" placeholder="Écris ton message ici..." onkeypress="handleKeyPress(event)">
-                <button onclick="sendMessage()">Envoyer</button>
-            </div>
-        </div>
-    </main>
+    <main class="container">
 
-    <!-- 2. IMAGE GENERATOR -->
-    <main id="page-image" class="page">
-        <div class="card-box" style="text-align: center;">
-            <h2>Générateur d'Images IA 🎨</h2>
-            <div class="form-group" style="margin-top:15px;">
-                <input type="text" id="img-prompt-input" placeholder="Ex: Un lion cyberpunk dans la nuit">
-                <button class="btn-action" onclick="triggerImageGen()">Générer</button>
-            </div>
-        </div>
-    </main>
+        <!-- ================= PAGE CHAT ================= -->
+        <section id="page-chat" class="page active-page">
+            <div class="chat-layout">
+                <!-- Sidebar Historique -->
+                <aside class="chat-sidebar">
+                    <button onclick="startNewChat()" class="btn-primary">+ Nouvelle conversation</button>
+                    <h3>Historique</h3>
+                    <div id="chat-history-list" class="history-list"></div>
+                </aside>
 
-    <!-- 3. PREMIUM -->
-    <main id="page-premium" class="page">
-        <div class="card-box" style="max-width:380px; border:2px solid #a855f7; text-align:center;">
-            <h2 style="color:#a855f7;">Pass VIP</h2>
-            <h1 style="font-size: 2.5rem; margin: 15px 0; color:white;">3,00 € <span style="font-size:1rem; color:#8b949e;">/ mois</span></h1>
-            <button class="btn-action" style="background: linear-gradient(45deg, #a855f7, #ec4899); width:100%;" onclick="alert('Abonnement activé !')">Devenir Premium</button>
-        </div>
-    </main>
+                <!-- Zone de Chat principal -->
+                <div class="chat-main">
+                    <div class="root-mascot">
+                        <span class="avatar">🤖</span>
+                        <div>
+                            <strong>Rootify Assistant</strong> <span class="online-dot">● En ligne</span>
+                            <p id="root-status">« Pose-moi une question ou utilise /image ! »</p>
+                        </div>
+                    </div>
 
-    <!-- 4. LISTE DES TICKETS (SUPPORT) -->
-    <main id="page-support" class="page">
-        <div class="card-box">
-            <h2>Centre de Support 🎫</h2>
-            <form class="form-group" onsubmit="createTicket(event)">
-                <input type="text" id="ticket-subject" placeholder="Sujet de votre demande" required>
-                <select id="ticket-priority">
-                    <option value="Basse">Priorité : Basse</option>
-                    <option value="Haute">Priorité : Haute ⚡</option>
-                </select>
-                <textarea id="ticket-desc" rows="3" placeholder="Description de votre problème..." required></textarea>
-                <button type="submit" class="btn-action">Ouvrir le ticket</button>
-            </form>
+                    <div id="chat-box" class="chat-box"></div>
 
-            <h3 style="margin-top:30px; padding-bottom:10px; border-bottom:1px solid #30363d;">Liste des Tickets</h3>
-            <div id="ticket-list" style="margin-top:15px;"></div>
-        </div>
-    </main>
-
-    <!-- 5. PAGE PROPRE ET DÉDIÉE D'UN TICKET -->
-    <main id="page-ticket-detail" class="page">
-        <div class="card-box" style="max-width:750px; width:100%;">
-            <button onclick="showPage('support')" style="background:none; border:none; color:#58a6ff; cursor:pointer; margin-bottom:15px; font-weight:bold;">← Retour aux tickets</button>
-            
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #30363d; padding-bottom:15px;">
-                <div>
-                    <h2>Ticket #<span id="detail-ticket-id"></span></h2>
-                    <h3 id="detail-ticket-subject" style="color:#8b949e; margin-top:5px;"></h3>
-                    <p style="font-size:0.85rem; color:#58a6ff; margin-top:5px;">Auteur : <span id="detail-ticket-user"></span></p>
+                    <div class="chat-input-area">
+                        <input type="text" id="user-input" placeholder="Écris ton message ici..." onkeypress="handleKeyPress(event)">
+                        <button onclick="sendMessage()" class="btn-primary">Envoyer</button>
+                    </div>
                 </div>
-                <div>
-                    <label style="font-size:0.8rem; color:#8b949e; display:block; margin-bottom:3px;">Changer statut :</label>
-                    <select id="detail-ticket-status" onchange="updateTicketStatus()" style="padding:6px; background:#0d1117; color:white; border:1px solid #30363d; border-radius:4px;">
+            </div>
+        </section>
+
+        <!-- ================= PAGE GENERATION D'IMAGE ================= -->
+        <section id="page-image" class="page">
+            <div class="card center-content">
+                <h2>Générateur d'Images IA 🎨</h2>
+                <p>Décrivez l'image que vous souhaitez générer :</p>
+                <div class="input-group">
+                    <input type="text" id="img-prompt-input" placeholder="Ex: Un lion cyberpunk dans la jungle, 8k...">
+                    <button onclick="triggerImageGen()" class="btn-primary">Générer</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE SUPPORT (TICKETS) ================= -->
+        <section id="page-support" class="page">
+            <h2>Centre de Support 🎫</h2>
+            
+            <div class="card">
+                <h3>Ouvrir un ticket</h3>
+                <form onsubmit="createTicket(event)" class="ticket-form">
+                    <input type="text" id="ticket-subject" placeholder="Sujet de votre demande" required>
+                    <select id="ticket-priority">
+                        <option value="Basse">Priorité : Basse</option>
+                        <option value="Moyenne">Priorité : Moyenne</option>
+                        <option value="Haute">Priorité : Haute</option>
+                    </select>
+                    <textarea id="ticket-desc" placeholder="Description de votre problème..." required></textarea>
+                    <button type="submit" class="btn-primary">Ouvrir le ticket</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Vos Tickets</h3>
+                <div id="ticket-list"></div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE DETAIL TICKET ================= -->
+        <section id="page-ticket-detail" class="page">
+            <button onclick="showPage('support')" class="btn-secondary">← Retour aux tickets</button>
+            <div class="card">
+                <h2>Ticket #<span id="detail-ticket-id"></span> - <span id="detail-ticket-subject"></span></h2>
+                <p>Auteur : <strong id="detail-ticket-user"></strong></p>
+                
+                <div class="status-selector">
+                    <label>Statut :</label>
+                    <select id="detail-ticket-status" onchange="updateTicketStatus()">
                         <option value="En attente">En attente</option>
                         <option value="En cours">En cours</option>
                         <option value="Résolu">Résolu</option>
                         <option value="Fermé">Fermé</option>
                     </select>
                 </div>
+
+                <div id="ticket-messages-box" class="messages-box"></div>
+
+                <div class="chat-input-area">
+                    <input type="text" id="ticket-reply-input" placeholder="Écrire une réponse...">
+                    <button onclick="addTicketReply()" class="btn-action btn-primary">Répondre</button>
+                </div>
             </div>
+        </section>
 
-            <!-- Fil des messages -->
-            <div id="ticket-messages-box" style="height:300px; overflow-y:auto; margin:20px 0; padding:15px; background:#0d1117; border-radius:8px; border:1px solid #30363d;"></div>
-
-            <!-- Envoyer une réponse -->
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="ticket-reply-input" placeholder="Votre message..." style="flex:1; padding:10px; background:#0d1117; border:1px solid #30363d; border-radius:6px; color:white;">
-                <button onclick="addTicketReply()" class="btn-action">Envoyer</button>
+        <!-- ================= PAGE PREMIUM ================= -->
+        <section id="page-premium" class="page">
+            <div class="pricing-card">
+                <h2>Pass VIP ⭐</h2>
+                <div class="price">3€ <span>/ mois</span></div>
+                <ul>
+                    <li>✅ Accès prioritaire à Rootify</li>
+                    <li>✅ Génération d'images illimitée</li>
+                    <li>✅ Support client VIP</li>
+                </ul>
+                <button class="btn-primary">Devenir Premium</button>
             </div>
-        </div>
-    </main>
+        </section>
 
-    <!-- 6. CONNEXION -->
-    <main id="page-auth" class="page">
-        <div class="card-box" style="max-width: 400px; text-align: center;">
-            <h2>Connexion</h2>
-            <form class="form-group" onsubmit="handleAuth(event)">
-                <input type="email" id="auth-email" placeholder="Entrez votre email" required>
-                <input type="password" placeholder="Mot de passe" required>
-                <button type="submit" class="btn-action">Se connecter</button>
-            </form>
-        </div>
+        <!-- ================= PAGE CONNEXION ================= -->
+        <section id="page-auth" class="page">
+            <div class="card auth-card">
+                <h2>Connexion / Inscription</h2>
+                <form onsubmit="handleAuth(event)">
+                    <input type="email" id="auth-email" placeholder="Votre adresse email" required>
+                    <button type="submit" class="btn-primary">Se connecter</button>
+                </form>
+            </div>
+        </section>
+
     </main>
 
     <script src="script.js"></script>
