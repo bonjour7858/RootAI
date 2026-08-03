@@ -8,159 +8,47 @@
 </head>
 <body>
 
-    <!-- NAVBAR STYLE PALADIUM -->
+    <!-- NAVBAR -->
     <header class="navbar">
-        <div class="logo" onclick="showPage('chat')">
+        <div class="logo" onclick="navigateTo('chat')">
             <span class="logo-icon">🤖</span> Rootify
         </div>
         <nav class="nav-links">
-            <a id="link-chat" class="nav-btn active" onclick="showPage('chat')">IA Textuel</a>
-            <a id="link-image" class="nav-btn" onclick="showPage('image')">IA Image</a>
-            <a id="link-premium" class="nav-btn" onclick="showPage('premium')">Premium</a>
-            <a id="link-admin" class="nav-btn hidden" onclick="showPage('admin')">Admin</a>
+            <a data-page="chat" class="nav-btn active" onclick="navigateTo('chat')">IA Textuel</a>
+            <a data-page="image" class="nav-btn" onclick="navigateTo('image')">IA Image</a>
+            <a data-page="premium" class="nav-btn" onclick="navigateTo('premium')">Premium</a>
+            <a id="link-admin" data-page="admin" class="nav-btn hidden" onclick="openAdminPinModal()">Admin</a>
         </nav>
         <div class="nav-actions">
-            <a id="link-auth" class="btn-nav-secondary" onclick="showPage('auth')">Connexion</a>
+            <a id="link-auth" class="btn-nav-secondary" onclick="navigateTo('auth')">Connexion</a>
             <button class="btn-nav-admin" onclick="openAdminPinModal()">🔑 Admin</button>
         </div>
     </header>
 
-    <main class="container">
-
-        <!-- PAGE CHAT IA -->
-        <section id="page-chat" class="page active-page">
-            <div class="hero-header">
-                <span class="badge-tag">REJOIGNEZ ROOTIFY</span>
-                <h1>Commencez Votre Aventure !</h1>
-                <p>Rootify est la plateforme IA tout-en-un. Générez du texte et des idées en un instant !</p>
-                <div class="hero-buttons">
-                    <button class="btn-main-orange" onclick="focusChatInput()">▶ Générer</button>
-                    <button class="btn-main-dark" onclick="showPage('premium')">En savoir plus</button>
-                </div>
-            </div>
-
-            <div class="chat-layout">
-                <aside class="chat-sidebar">
-                    <button onclick="startNewChat()" class="btn-main-orange full-width">+ Nouvelle conversation</button>
-                    <h3>Historique</h3>
-                    <div id="chat-history-list" class="history-list"></div>
-                </aside>
-
-                <div class="chat-main">
-                    <div class="root-mascot">
-                        <span class="avatar">🤖</span>
-                        <div>
-                            <strong>Rootify Assistant</strong> <span class="online-dot">● En ligne</span>
-                            <p id="root-status">« Écrivez votre message et cliquez sur Générer ! »</p>
-                        </div>
-                    </div>
-
-                    <div id="chat-box" class="chat-box"></div>
-
-                    <div class="chat-input-area">
-                        <input type="text" id="user-input" placeholder="Écris ton prompt ici...">
-                        <button onclick="sendMessage()" class="btn-main-orange">Générer</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE IA IMAGE -->
-        <section id="page-image" class="page">
-            <div class="card center-content">
-                <h2>Générateur d'Images IA 🎨</h2>
-                <p>Décrivez ce que vous souhaitez voir apparaître :</p>
-                <div class="input-group">
-                    <input type="text" id="img-prompt-input" placeholder="Ex: Un chevalier futuriste en armure...">
-                    <button onclick="triggerImageGen()" class="btn-main-orange" style="margin-top: 10px;">Générer l'image</button>
-                </div>
-                <div id="image-result" class="image-result-box"></div>
-            </div>
-        </section>
-
-        <!-- PAGE PREMIUM -->
-        <section id="page-premium" class="page">
-            <div class="pricing-card">
-                <h2>Pass VIP & Soutien ⭐</h2>
-                <div class="price">3€ <span>/ mois</span></div>
-                <ul>
-                    <li>✅ Accès prioritaire au modèle IA</li>
-                    <li>✅ Génération d'images ultra-rapide</li>
-                    <li>✅ Badge VIP sur le profil</li>
-                </ul>
-                <div class="action-buttons-group">
-                    <button id="btn-open-modal" class="btn-main-orange full-width" onclick="openCheckoutModal()">Tester la souscription (Test)</button>
-                    <a href="https://www.leetchi.com/" target="_blank" class="btn-leetchi full-width">🎁 Soutenir sur Leetchi</a>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE CONNEXION -->
-        <section id="page-auth" class="page">
-            <div class="card auth-card">
-                <h2>Connexion / Inscription</h2>
-                <form onsubmit="handleAuth(event)">
-                    <input type="email" id="auth-email" placeholder="Votre adresse email" required>
-                    <button type="submit" class="btn-main-orange full-width" style="margin-top:15px;">Se connecter</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- PAGE ADMIN -->
-        <section id="page-admin" class="page">
-            <div class="card">
-                <h2>Panneau d'Administration 👑</h2>
-                <p>Gestion globale de Rootify :</p>
-                
-                <div class="admin-stats-grid" style="margin-top:20px;">
-                    <div class="stat-box">
-                        <p><strong>Utilisateur connecté :</strong> <span id="admin-user-email">admin@rootify.com</span></p>
-                        <p><strong>Statut Serveur IA :</strong> <span style="color:#10b981;">● Opérationnel</span></p>
-                        <button onclick="clearAllData()" class="btn-danger" style="margin-top:15px; padding:8px 12px;">Réinitialiser toutes les données</button>
-                    </div>
-                </div>
-
-                <hr style="border:0; border-top:1px solid #242429; margin: 25px 0;">
-
-                <!-- SECTION SUPPORT DANS L'ADMIN -->
-                <h3>📩 Centre des Messages Support (Live)</h3>
-                <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Retrouvez ici tous les messages envoyés via la bulle de support :</p>
-                
-                <div id="admin-support-list" class="admin-support-container">
-                    <!-- Rempli en JS -->
-                </div>
-            </div>
-        </section>
-
+    <!-- RENDER DYNAMIQUE DES PAGES -->
+    <main id="app-viewport" class="container">
+        <!-- Le contenu dynamique s'injecte ici via script.js -->
     </main>
 
-    <!-- WIDGET SUPPORT FLOTTANT -->
+    <!-- WIDGET SUPPORT FLOTTANT DYNAMIQUE -->
     <div id="support-widget" class="support-widget">
         <button id="widget-toggle-btn" class="widget-toggle-btn" onclick="toggleSupportWidget()">💬</button>
 
         <div id="support-window" class="support-window">
             <div class="support-header">
-                <div class="support-tabs">
-                    <button class="tab-btn active">💬 Messages</button>
-                    <button class="tab-btn">📚 Articles</button>
-                </div>
                 <div class="support-team">
-                    <h4>Discuter avec le support</h4>
+                    <h4>Support Rootify (Live)</h4>
                     <p class="support-status">⏱️ En ligne - Réponses rapides</p>
                 </div>
             </div>
 
-            <div id="widget-chat-box" class="support-body">
-                <div class="support-msg bot-msg">
-                    Bonjour ! Une question sur Rootify ? Posez-la ici !
-                </div>
-            </div>
+            <div id="widget-chat-box" class="support-body"></div>
 
             <div class="support-footer">
-                <input type="text" id="widget-input" placeholder="Entrez votre message...">
+                <input type="text" id="widget-input" placeholder="Posez votre question...">
                 <button onclick="sendWidgetMessage()" class="btn-send">➢</button>
             </div>
-            <div class="support-branding">Propulsé par <strong>Rootify Support</strong></div>
+            <div class="support-branding">Propulsé par <strong>Rootify Live Engine</strong></div>
         </div>
     </div>
 
@@ -186,7 +74,7 @@
         <div class="modal-content" style="max-width:320px; text-align:center;">
             <span class="close-btn" onclick="closeAdminPinModal()">&times;</span>
             <h3>🔐 Accès Sécurisé</h3>
-            <p style="margin:10px 0; font-size:0.85rem; color:#aaa;">Entrez le code PIN Administrateur (Ex: <strong>1234</strong>) :</p>
+            <p style="margin:10px 0; font-size:0.85rem; color:#aaa;">Entrez le code PIN Administrateur :</p>
             <input type="password" id="admin-pin-input" placeholder="Code PIN (1234)" style="text-align:center; font-size:1.2rem; letter-spacing:5px; margin-bottom:15px;" maxlength="8">
             <button onclick="verifyAdminPin()" class="btn-main-orange full-width">Valider</button>
         </div>
