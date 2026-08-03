@@ -1,5 +1,5 @@
-// URL de ton Cloudflare Worker
 const WORKER_URL = 'https://rootai.bonjour7858.workers.dev/';
+const ADMIN_PIN = "1234"; // CODE PIN ADMIN
 
 let currentUser = JSON.parse(localStorage.getItem('rootify_user')) || { email: 'invité@rootify.com', role: 'user', isVip: false };
 let currentChatId = null;
@@ -8,19 +8,25 @@ document.addEventListener("DOMContentLoaded", () => {
     updateUserUI();
     renderChatHistoryList();
     startNewChat();
+    loadSupportMessagesInAdmin();
 
-    // Touche Entrée sur le tchat principal
+    // Entrée sur le tchat principal
     document.getElementById('user-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
 
-    // Touche Entrée sur le support
+    // Entrée sur le support
     document.getElementById('widget-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendWidgetMessage();
     });
+
+    // Entrée sur le PIN Admin
+    document.getElementById('admin-pin-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') verifyAdminPin();
+    });
 });
 
-// Navigation inter-pages
+// Navigation Inter-Pages
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -30,6 +36,10 @@ function showPage(pageId) {
 
     if (targetPage) targetPage.classList.add('active-page');
     if (targetLink) targetLink.classList.add('active');
+
+    if (pageId === 'admin') {
+        loadSupportMessagesInAdmin();
+    }
 }
 
 function focusChatInput() {
@@ -37,7 +47,50 @@ function focusChatInput() {
     document.getElementById('user-input').focus();
 }
 
-// Widget Support Flottant
+// SECURE ADMIN PIN SYSTEM
+function openAdminPinModal() {
+    if (currentUser.role === 'admin') {
+        showPage('admin');
+    } else {
+        document.getElementById('admin-pin-modal').classList.add('show');
+        document.getElementById('admin-pin-input').focus();
+    }
+}
+
+function closeAdminPinModal() {
+    document.getElementById('admin-pin-modal').classList.remove('show');
+    document.getElementById('admin-pin-input').value = '';
+}
+
+function verifyAdminPin() {
+    const inputPin = document.getElementById('admin-pin-input').value;
+    if (inputPin === ADMIN_PIN) {
+        currentUser = { email: 'admin@rootify.com', role: 'admin', isVip: true };
+        localStorage.setItem('rootify_user', JSON.stringify(currentUser));
+        updateUserUI();
+        closeAdminPinModal();
+        showPage('admin');
+        alert("🔓 Accès Admin Autorisé !");
+    } else {
+        alert("❌ Code PIN Incorrect ! (Essaye: 1234)");
+        document.getElementById('admin-pin-input').value = '';
+    }
+}
+
+function updateUserUI() {
+    const authLink = document.getElementById('link-auth');
+    const adminLink = document.getElementById('link-admin');
+    const adminEmail = document.getElementById('admin-user-email');
+
+    if (authLink) authLink.textContent = currentUser.email.includes('invité') ? 'Connexion' : currentUser.email;
+    if (adminEmail) adminEmail.textContent = currentUser.email;
+
+    if (adminLink && currentUser.role === 'admin') {
+        adminLink.classList.remove('hidden');
+    }
+}
+
+// SUPPORT WIDGET & ADMIN LINK
 function toggleSupportWidget() {
     const win = document.getElementById('support-window');
     win.classList.toggle('show');
@@ -57,23 +110,59 @@ function sendWidgetMessage() {
     input.value = '';
     box.scrollTop = box.scrollHeight;
 
+    // Sauvegarder dans le stockage pour l'admin
+    let supportList = JSON.parse(localStorage.getItem('rootify_support_msgs')) || [];
+    supportList.push({ id: Date.now(), text: text, time: new Date().toLocaleTimeString() });
+    localStorage.setItem('rootify_support_msgs', JSON.stringify(supportList));
+
+    // Mettre à jour la vue admin si elle est ouverte
+    loadSupportMessagesInAdmin();
+
     setTimeout(() => {
         const botMsg = document.createElement('div');
         botMsg.className = 'support-msg bot-msg';
-        botMsg.textContent = "Support Rootify: Merci ! Notre équipe vous répondra très rapidement.";
+        botMsg.textContent = "Support Rootify: Message bien transmis à l'équipe !";
         box.appendChild(botMsg);
         box.scrollTop = box.scrollHeight;
     }, 800);
 }
 
-// Modal Achat Test
-function openCheckoutModal() {
-    document.getElementById('checkout-modal').classList.add('show');
+function loadSupportMessagesInAdmin() {
+    const adminListContainer = document.getElementById('admin-support-list');
+    if (!adminListContainer) return;
+
+    let supportList = JSON.parse(localStorage.getItem('rootify_support_msgs')) || [];
+    
+    if (supportList.length === 0) {
+        adminListContainer.innerHTML = '<p style="color:#666; font-size:0.85rem;">Aucun message reçu pour le moment.</p>';
+        return;
+    }
+
+    adminListContainer.innerHTML = '';
+    supportList.reverse().forEach(msg => {
+        const card = document.createElement('div');
+        card.className = 'admin-support-card';
+        card.innerHTML = `
+            <div>
+                <div class="msg-text">💬 "${msg.text}"</div>
+                <div class="msg-time">Reçu à ${msg.time}</div>
+            </div>
+            <button class="btn-danger" onclick="deleteSupportMsg(${msg.id})">Supprimer</button>
+        `;
+        adminListContainer.appendChild(card);
+    });
 }
 
-function closeCheckoutModal() {
-    document.getElementById('checkout-modal').classList.remove('show');
+function deleteSupportMsg(id) {
+    let supportList = JSON.parse(localStorage.getItem('rootify_support_msgs')) || [];
+    supportList = supportList.filter(m => m.id !== id);
+    localStorage.setItem('rootify_support_msgs', JSON.stringify(supportList));
+    loadSupportMessagesInAdmin();
 }
+
+// MODAL ACHAT TEST
+function openCheckoutModal() { document.getElementById('checkout-modal').classList.add('show'); }
+function closeCheckoutModal() { document.getElementById('checkout-modal').classList.remove('show'); }
 
 function processTestPayment(e) {
     e.preventDefault();
@@ -83,29 +172,7 @@ function processTestPayment(e) {
     alert("🎉 Simulation d'achat réussie ! Statut VIP activé.");
 }
 
-// Mode Admin
-function loginAsAdmin() {
-    currentUser = { email: 'admin@rootify.com', role: 'admin', isVip: true };
-    localStorage.setItem('rootify_user', JSON.stringify(currentUser));
-    updateUserUI();
-    showPage('admin');
-    alert("👑 Connecté en Admin ! Le panneau d'administration est ouvert.");
-}
-
-function updateUserUI() {
-    const authLink = document.getElementById('link-auth');
-    const adminLink = document.getElementById('link-admin');
-    const adminEmail = document.getElementById('admin-user-email');
-
-    if (authLink) authLink.textContent = currentUser.email.includes('invité') ? 'Connexion' : currentUser.email;
-    if (adminEmail) adminEmail.textContent = currentUser.email;
-
-    if (adminLink && currentUser.role === 'admin') {
-        adminLink.classList.remove('hidden');
-    }
-}
-
-// Moteur IA Textuel (Connecté à ton API Worker Cloudflare)
+// MOTEUR IA TEXTUEL (WORKER CLOUDFLARE)
 function startNewChat() {
     currentChatId = Date.now().toString();
     const chatBox = document.getElementById('chat-box');
@@ -174,7 +241,7 @@ async function sendMessage() {
     } catch (error) {
         const loader = document.getElementById('loading-indicator');
         if (loader) chatBox.removeChild(loader);
-        addBotMessageUI("❌ Erreur de connexion au Worker Cloudflare. Vérifiez les règles CORS de votre Worker.");
+        addBotMessageUI("❌ Erreur de connexion au Worker Cloudflare.");
     }
 }
 
@@ -244,7 +311,7 @@ function deleteChat(id, e) {
     else renderChatHistoryList();
 }
 
-// Moteur IA Image
+// MOTEUR IA IMAGE
 function triggerImageGen() {
     const prompt = document.getElementById('img-prompt-input').value.trim();
     const resBox = document.getElementById('image-result');
