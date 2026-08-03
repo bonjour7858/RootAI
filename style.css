@@ -1,174 +1,178 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rootify - IA & Innovation</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
 
-    <!-- Header Style Paladium -->
-    <header class="navbar">
-        <div class="logo" onclick="showPage('chat')">
-            <span class="logo-icon">🤖</span> Rootify
-        </div>
-        <nav class="nav-links">
-            <a id="link-chat" class="nav-btn active" onclick="showPage('chat')">IA Textuel</a>
-            <a id="link-image" class="nav-btn" onclick="showPage('image')">IA Image</a>
-            <a id="link-premium" class="nav-btn" onclick="showPage('premium')">Premium</a>
-            <a id="link-admin" class="nav-btn hidden" onclick="showPage('admin')">Admin</a>
-        </nav>
-        <div class="nav-actions">
-            <a id="link-auth" class="btn-nav-secondary" onclick="showPage('auth')">Connexion</a>
-            <button class="btn-nav-admin" onclick="loginAsAdmin()">Admin</button>
-        </div>
-    </header>
+body {
+    background-color: #0e0e10;
+    color: #efefed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 
-    <main class="container">
+.hidden { display: none !important; }
 
-        <!-- PAGE CHAT IA -->
-        <section id="page-chat" class="page active-page">
-            <div class="hero-header">
-                <span class="badge-tag">REJOIGNEZ ROOTIFY</span>
-                <h1>Commencez Votre Aventure !</h1>
-                <p>Rootify est la plateforme IA tout-en-un. Générez du texte et des idées en un instant !</p>
-                <div class="hero-buttons">
-                    <button class="btn-main-orange" onclick="focusChatInput()">▶ Générer</button>
-                    <button class="btn-main-dark" onclick="showPage('premium')">En savoir plus</button>
-                </div>
-            </div>
+/* NAVBAR */
+.navbar {
+    background-color: #141417;
+    border-bottom: 1px solid #242429;
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-            <div class="chat-layout">
-                <aside class="chat-sidebar">
-                    <button onclick="startNewChat()" class="btn-main-orange full-width">+ Nouvelle conversation</button>
-                    <h3>Historique</h3>
-                    <div id="chat-history-list" class="history-list"></div>
-                </aside>
+.logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffffff;
+    cursor: pointer;
+}
 
-                <div class="chat-main">
-                    <div class="root-mascot">
-                        <span class="avatar">🤖</span>
-                        <div>
-                            <strong>Rootify Assistant</strong> <span class="online-dot">● En ligne</span>
-                            <p id="root-status">« Écrivez votre message et cliquez sur Générer ! »</p>
-                        </div>
-                    </div>
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
 
-                    <div id="chat-box" class="chat-box"></div>
+.nav-btn {
+    color: #a0a0ab;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    position: relative;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
 
-                    <div class="chat-input-area">
-                        <input type="text" id="user-input" placeholder="Écris ton prompt ici..." onkeypress="handleKeyPress(event)">
-                        <button onclick="sendMessage()" class="btn-main-orange">Générer</button>
-                    </div>
-                </div>
-            </div>
-        </section>
+.nav-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background-color: #ff5500;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
 
-        <!-- PAGE IA IMAGE -->
-        <section id="page-image" class="page">
-            <div class="card center-content">
-                <h2>Générateur d'Images IA 🎨</h2>
-                <p>Décrivez ce que vous souhaitez voir apparaître :</p>
-                <div class="input-group">
-                    <input type="text" id="img-prompt-input" placeholder="Ex: Un paysage cyberpunk sous la pluie...">
-                    <button onclick="triggerImageGen()" class="btn-main-orange">Générer</button>
-                </div>
-                <div id="image-result" class="image-result-box"></div>
-            </div>
-        </section>
+.nav-btn:hover { color: #ffffff; }
+.nav-btn:hover::after, .nav-btn.active::after { width: 100%; }
+.nav-btn.active { color: #ffffff; }
 
-        <!-- PAGE PREMIUM -->
-        <section id="page-premium" class="page">
-            <div class="pricing-card">
-                <h2>Pass VIP & Soutien ⭐</h2>
-                <div class="price">3€ <span>/ mois</span></div>
-                <ul>
-                    <li>✅ Accès prioritaire au modèle IA</li>
-                    <li>✅ Génération d'images ultra-rapide</li>
-                    <li>✅ Badge VIP sur le profil</li>
-                    <li>✅ Accès prioritaire au support</li>
-                </ul>
-                <div class="action-buttons-group">
-                    <button id="btn-open-modal" class="btn-main-orange full-width">Tester la souscription (Test)</button>
-                    <a href="https://www.leetchi.com/fr/c/achat-de-pc-gamer-1951174" target="_blank" class="btn-leetchi full-width">🎁 Acheter</a>
-                </div>
-            </div>
-        </section>
+.nav-actions { display: flex; gap: 12px; align-items: center; }
 
-        <!-- PAGE CONNEXION -->
-        <section id="page-auth" class="page">
-            <div class="card auth-card">
-                <h2>Connexion / Inscription</h2>
-                <form onsubmit="handleAuth(event)">
-                    <input type="email" id="auth-email" placeholder="Votre adresse email" required>
-                    <button type="submit" class="btn-main-orange full-width">Se connecter</button>
-                </form>
-            </div>
-        </section>
+.btn-nav-secondary {
+    background-color: #1f1f24;
+    color: #ffffff;
+    border: 1px solid #2d2d35;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
 
-        <!-- PAGE ADMIN -->
-        <section id="page-admin" class="page">
-            <div class="card">
-                <h2>Panneau d'Administration 👑</h2>
-                <p>Gestion de la plateforme Rootify :</p>
-                <div style="margin-top: 20px;">
-                    <p><strong>Utilisateurs inscrits :</strong> 1</p>
-                    <p><strong>Statut Serveur Worker :</strong> <span style="color:#10b981;">Actif</span></p>
-                    <button onclick="clearAllData()" class="btn-danger" style="margin-top:15px; padding:10px;">Réinitialiser les données locales</button>
-                </div>
-            </div>
-        </section>
+.btn-nav-admin {
+    background: linear-gradient(135deg, #ff5500, #e04400);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
+}
 
-    </main>
+/* HERO SECTION */
+.hero-header { margin: 30px 0; max-width: 650px; }
+.badge-tag { color: #ff5500; font-weight: 800; font-size: 0.8rem; letter-spacing: 1.5px; }
+.hero-header h1 { font-size: 3rem; font-weight: 900; margin: 10px 0; line-height: 1.1; }
+.hero-header p { color: #a0a0ab; font-size: 1.05rem; margin-bottom: 20px; }
+.hero-buttons { display: flex; gap: 15px; }
 
-    <!-- WIDGET SUPPORT FLOTTANT (STYLE CRISP / PALADIUM) -->
-    <div id="support-widget" class="support-widget">
-        <button id="widget-toggle-btn" class="widget-toggle-btn">💬</button>
+.btn-main-orange {
+    background: linear-gradient(135deg, #ff5500, #ff6611);
+    color: white;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 85, 0, 0.4);
+}
 
-        <div id="support-window" class="support-window">
-            <div class="support-header">
-                <div class="support-tabs">
-                    <button class="tab-btn active">💬 Messages</button>
-                    <button class="tab-btn">📚 Articles</button>
-                </div>
-                <div class="support-team">
-                    <h4>Discuter avec le support</h4>
-                    <p class="support-status">⏱️ Réponse rapide en direct</p>
-                </div>
-            </div>
+.btn-main-dark {
+    background-color: #1a1a1e;
+    color: white;
+    border: 1px solid #2d2d35;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
 
-            <div id="widget-chat-box" class="support-body">
-                <div class="support-msg bot-msg">
-                    Comment puis-je vous aider à propos de Rootify ?
-                </div>
-            </div>
+/* CONTAINER & PAGES */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px 40px 20px; width: 100%; }
+.page { display: none; }
+.page.active-page { display: block; }
 
-            <div class="support-footer">
-                <input type="text" id="widget-input" placeholder="Entrez votre message..." onkeypress="handleWidgetKeyPress(event)">
-                <button onclick="sendWidgetMessage()" class="btn-send">➢</button>
-            </div>
-            <div class="support-branding">Propulsé par <strong>Rootify Support</strong></div>
-        </div>
-    </div>
+.chat-layout { display: flex; gap: 20px; height: 60vh; }
+.chat-sidebar { width: 280px; background-color: #141417; border: 1px solid #242429; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; }
+.history-list { flex: 1; overflow-y: auto; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #1a1a1e; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.history-item.active { border-left: 3px solid #ff5500; }
 
-    <!-- MODAL PAIEMENT TEST -->
-    <div id="checkout-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="btn-close-modal">&times;</span>
-            <h3>💳 Simulation d'Achat VIP</h3>
-            <form onsubmit="processTestPayment(event)">
-                <input type="text" placeholder="Nom sur la carte" value="Jean Dupont" required>
-                <input type="text" placeholder="Numéro de carte (Factice)" value="4242 •••• •••• 4242" required>
-                <div class="flex-row" style="margin-top:10px;">
-                    <input type="text" placeholder="MM/AA" value="12/28" required>
-                    <input type="text" placeholder="CVC" value="123" required>
-                </div>
-                <button type="submit" class="btn-main-orange full-width" style="margin-top:15px;">Payer 3,00 € (Mode Test)</button>
-            </form>
-        </div>
-    </div>
+.chat-main { flex: 1; background-color: #141417; border: 1px solid #242429; border-radius: 12px; display: flex; flex-direction: column; padding: 20px; }
+.root-mascot { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #242429; }
+.online-dot { color: #10b981; font-size: 0.8rem; }
+.chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 15px 0; }
 
-    <script src="script.js"></script>
-</body>
-</html>
+.message { max-width: 80%; padding: 12px 16px; border-radius: 10px; line-height: 1.4; }
+.message.user { background-color: #ff5500; color: white; align-self: flex-end; }
+.message.bot { background-color: #1e1e24; border: 1px solid #2d2d35; align-self: flex-start; }
+.chat-input-area { display: flex; gap: 10px; }
+
+input { background-color: #1a1a1e; border: 1px solid #2d2d35; color: #fff; padding: 12px; border-radius: 8px; width: 100%; }
+
+/* SUPPORT WIDGET (FIXED) */
+.support-widget { position: fixed; bottom: 25px; right: 25px; z-index: 9999; }
+.widget-toggle-btn { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #ff5500, #e04400); border: none; color: white; font-size: 1.6rem; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 85, 0, 0.5); display: flex; align-items: center; justify-content: center; }
+
+.support-window { display: none; position: absolute; bottom: 75px; right: 0; width: 340px; height: 480px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-direction: column; overflow: hidden; color: #333; }
+.support-window.active { display: flex !important; }
+
+.support-header { background: linear-gradient(135deg, #ff5500, #d94800); padding: 18px; color: white; text-align: center; }
+.support-tabs { background-color: rgba(0,0,0,0.15); display: inline-flex; padding: 4px; border-radius: 20px; margin-bottom: 10px; }
+.tab-btn { background: none; border: none; color: white; padding: 6px 14px; border-radius: 16px; font-weight: 700; cursor: pointer; font-size: 0.8rem; }
+.tab-btn.active { background-color: #ffffff; color: #ff5500; }
+
+.support-body { flex: 1; background-color: #f4f5f7; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.support-msg { padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; max-width: 85%; }
+.support-msg.bot-msg { background-color: #ffffff; color: #222; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.support-msg.user-msg { background-color: #ff5500; color: white; align-self: flex-end; }
+
+.support-footer { padding: 10px; background-color: #ffffff; border-top: 1px solid #eee; display: flex; gap: 8px; }
+.support-footer input { background-color: #f4f5f7; border: 1px solid #e0e0e0; color: #333; padding: 8px 12px; }
+.btn-send { background-color: #ff5500; color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.support-branding { text-align: center; font-size: 0.7rem; color: #999; padding-bottom: 6px; background-color: #fff; }
+
+/* MODAL FIX */
+.card { background-color: #141417; border: 1px solid #242429; border-radius: 12px; padding: 30px; }
+.pricing-card { background-color: #141417; border: 2px solid #ff5500; border-radius: 16px; padding: 35px; max-width: 420px; margin: 40px auto; text-align: center; }
+.pricing-card .price { font-size: 3rem; font-weight: 900; color: #ff5500; margin: 15px 0; }
+.pricing-card ul { text-align: left; list-style: none; margin-bottom: 20px; }
+.pricing-card li { margin-bottom: 10px; }
+.btn-leetchi { background-color: #10b981; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; display: block; text-align: center; margin-top: 10px; }
+.full-width { width: 100%; }
+
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; }
+.modal.active { display: flex !important; }
+.modal-content { background: #141417; border: 1px solid #242429; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; position: relative; }
+.close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; color: #aaa; }
+.flex-row { display: flex; gap: 10px; }
+.btn-danger { background-color: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
