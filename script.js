@@ -1,27 +1,15 @@
-// ==========================================
-// ⚙️ CONFIGURATION & ETAT GLOBAL
-// ==========================================
-
-// ⚠️ Remplace par l'URL exacte de ton Cloudflare Worker !
 const WORKER_URL = 'https://rootai.bonjour7858.workers.dev/';
 
 let currentUser = JSON.parse(localStorage.getItem('rootify_user')) || { email: 'invité@rootify.com', role: 'user', isVip: false };
 let currentChatId = null;
-let currentTicketId = null;
 
-// ==========================================
-// 🚀 INITIALISATION DU SITE
-// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     updateUserUI();
     renderChatHistoryList();
     startNewChat();
-    renderTickets();
 });
 
-// ==========================================
-// 🧭 NAVIGATION ENTRE LES PAGES
-// ==========================================
+// Navigation
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -33,46 +21,57 @@ function showPage(pageId) {
     if (targetLink) targetLink.classList.add('active');
 }
 
-// ==========================================
-// 🔐 AUTHENTIFICATION & ROLES
-// ==========================================
-function handleAuth(event) {
-    event.preventDefault();
-    const email = document.getElementById('auth-email').value;
-    
-    currentUser = {
-        email: email,
-        role: email.toLowerCase() === 'admin@rootai.com' ? 'admin' : 'user',
-        isVip: false
-    };
+function focusChatInput() {
+    showPage('chat');
+    document.getElementById('user-input').focus();
+}
 
+function loginAsAdmin() {
+    currentUser = { email: 'admin@rootai.com', role: 'admin', isVip: true };
     localStorage.setItem('rootify_user', JSON.stringify(currentUser));
     updateUserUI();
-    renderTickets(); // Mettre à jour l'affichage des tickets selon le rôle
-    showPage('chat');
+    alert("👑 Connecté en tant qu'Administrateur !");
 }
 
 function updateUserUI() {
-    const badge = document.getElementById('user-badge');
     const authLink = document.getElementById('link-auth');
-
-    if (currentUser.role === 'admin') {
-        badge.textContent = `👑 Admin (${currentUser.email})`;
-        badge.style.color = '#ef4444';
-    } else if (currentUser.isVip) {
-        badge.textContent = `⭐ VIP (${currentUser.email})`;
-        badge.style.color = '#eab308';
-    } else {
-        badge.textContent = currentUser.email;
-        badge.style.color = '#ff6b00';
-    }
-
-    authLink.textContent = currentUser.email.includes('invité') ? 'Connexion' : 'Profil';
+    if (authLink) authLink.textContent = currentUser.email.includes('invité') ? 'Connexion' : currentUser.email;
 }
 
-// ==========================================
-// 💬 MODULE CHAT IA (VIA CLOUDFLARE WORKER)
-// ==========================================
+// Support Widget Toggle
+function toggleSupportWidget() {
+    const win = document.getElementById('support-window');
+    win.classList.toggle('open');
+}
+
+function sendWidgetMessage() {
+    const input = document.getElementById('widget-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const box = document.getElementById('widget-chat-box');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'support-msg user-msg';
+    userMsg.textContent = text;
+    box.appendChild(userMsg);
+
+    input.value = '';
+    box.scrollTop = box.scrollHeight;
+
+    setTimeout(() => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'support-msg bot-msg';
+        botMsg.textContent = "Un membre de l'équipe Rootify examinera votre demande sous peu !";
+        box.appendChild(botMsg);
+        box.scrollTop = box.scrollHeight;
+    }, 1000);
+}
+
+function handleWidgetKeyPress(e) {
+    if (e.key === 'Enter') sendWidgetMessage();
+}
+
+// Chat IA Engine
 function startNewChat() {
     currentChatId = Date.now().toString();
     const chatBox = document.getElementById('chat-box');
@@ -85,7 +84,7 @@ function startNewChat() {
     }
 
     renderChatHistoryList();
-    addBotMessageUI("Bonjour ! Je suis Rootify. Comment puis-je t'aider aujourd'hui ?");
+    addBotMessageUI("Bonjour ! Je suis Rootify. Clique sur 'Générer' pour lancer une requête !");
 }
 
 async function sendMessage() {
@@ -93,12 +92,10 @@ async function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
 
-    // 1. Ajouter le message utilisateur dans le DOM et le Storage
     addUserMessageUI(text);
     saveChatMessage('user', text);
     input.value = '';
 
-    // 2. Mettre à jour le titre du chat s'il s'agit du début
     let history = getChatsFromStorage();
     if (history[currentChatId] && history[currentChatId].messages.length <= 2) {
         history[currentChatId].title = text.substring(0, 20) + '...';
@@ -106,75 +103,62 @@ async function sendMessage() {
         renderChatHistoryList();
     }
 
-    // 3. Indicateur de chargement
     const chatBox = document.getElementById('chat-box');
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'message bot';
     loadingMsg.id = 'loading-indicator';
-    loadingMsg.textContent = 'Rootify réfléchit... 🧠';
+    loadingMsg.textContent = 'Génération en cours... 🧠';
     chatBox.appendChild(loadingMsg);
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
-        // 4. Appel de ton Cloudflare Worker
         const response = await fetch(WORKER_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [
-                    { role: "system", content: "Tu es Rootify, une IA française intelligente, dynamique, amicale et super efficace." },
+                    { role: "system", content: "Tu es Rootify, l'IA officielle de la plateforme." },
                     { role: "user", content: text }
                 ]
             })
         });
 
         const data = await response.json();
-
-        // Enlever l'indicateur
         const loader = document.getElementById('loading-indicator');
         if (loader) chatBox.removeChild(loader);
 
-        let aiReply = "Désolé, je n'ai pas pu comprendre la réponse.";
-
         if (data.choices && data.choices[0]) {
-            aiReply = data.choices[0].message.content;
-        } else if (data.reply) {
-            aiReply = data.reply;
+            const aiReply = data.choices[0].message.content;
+            addBotMessageUI(aiReply);
+            saveChatMessage('bot', aiReply);
+        } else {
+            addBotMessageUI("Erreur de génération.");
         }
-
-        addBotMessageUI(aiReply);
-        saveChatMessage('bot', aiReply);
-
     } catch (error) {
         const loader = document.getElementById('loading-indicator');
         if (loader) chatBox.removeChild(loader);
-
-        const errorMsg = "Erreur de connexion au Worker Cloudflare. Vérifie que WORKER_URL est correcte.";
-        addBotMessageUI(errorMsg);
-        console.error("Erreur Chat:", error);
+        addBotMessageUI("❌ Connexion au Worker échouée.");
     }
 }
 
-function handleKeyPress(e) {
-    if (e.key === 'Enter') sendMessage();
-}
+function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 function addUserMessageUI(text) {
-    const chatBox = document.getElementById('chat-box');
+    const box = document.getElementById('chat-box');
     const msg = document.createElement('div');
     msg.className = 'message user';
     msg.textContent = text;
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    box.appendChild(msg);
+    box.scrollTop = box.scrollHeight;
 }
 
 function addBotMessageUI(text) {
-    const chatBox = document.getElementById('chat-box');
+    const box = document.getElementById('chat-box');
     const msg = document.createElement('div');
     msg.className = 'message bot';
     msg.textContent = text;
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    box.appendChild(msg);
+    box.scrollTop = box.scrollHeight;
 }
 
 function saveChatMessage(role, text) {
@@ -184,15 +168,12 @@ function saveChatMessage(role, text) {
     localStorage.setItem('rootify_chats', JSON.stringify(history));
 }
 
-function getChatsFromStorage() {
-    return JSON.parse(localStorage.getItem('rootify_chats')) || {};
-}
+function getChatsFromStorage() { return JSON.parse(localStorage.getItem('rootify_chats')) || {}; }
 
 function renderChatHistoryList() {
     const list = document.getElementById('chat-history-list');
     if (!list) return;
     list.innerHTML = '';
-
     let history = getChatsFromStorage();
     Object.keys(history).reverse().forEach(id => {
         const item = document.createElement('div');
@@ -207,9 +188,8 @@ function renderChatHistoryList() {
 
 function loadChat(id) {
     currentChatId = id;
-    const chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML = '';
-
+    const box = document.getElementById('chat-box');
+    box.innerHTML = '';
     let history = getChatsFromStorage();
     if (history[id]) {
         history[id].messages.forEach(m => {
@@ -229,166 +209,30 @@ function deleteChat(id, e) {
     else renderChatHistoryList();
 }
 
-// ==========================================
-// 🎨 GENERATION D'IMAGE HD
-// ==========================================
 function triggerImageGen() {
     const prompt = document.getElementById('img-prompt-input').value;
     const resBox = document.getElementById('image-result');
     if (!prompt) return;
-
-    resBox.innerHTML = '<p>🎨 Génération en cours par Rootify IA...</p>';
+    resBox.innerHTML = '<p>🎨 Génération visuelle en cours...</p>';
     setTimeout(() => {
-        resBox.innerHTML = `<img src="https://picsum.photos/600/400?random=${Math.floor(Math.random()*1000)}" alt="Image générée">`;
+        resBox.innerHTML = `<img src="https://picsum.photos/600/400?random=${Math.floor(Math.random()*1000)}" style="max-width:100%; border-radius:10px; margin-top:15px;" alt="Image générée">`;
     }, 1500);
 }
 
-// ==========================================
-// 🎫 MODULE SUPPORT & TICKETS
-// ==========================================
-function createTicket(e) {
+function handleAuth(e) {
     e.preventDefault();
-    const subject = document.getElementById('ticket-subject').value;
-    const priority = document.getElementById('ticket-priority').value;
-    const desc = document.getElementById('ticket-desc').value;
-
-    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
-    const newTicket = {
-        id: Math.floor(1000 + Math.random() * 9000),
-        user: currentUser.email,
-        subject: subject,
-        priority: priority,
-        status: 'En attente',
-        messages: [{ sender: currentUser.email, text: desc }]
-    };
-
-    tickets.push(newTicket);
-    localStorage.setItem('rootify_tickets', JSON.stringify(tickets));
-
-    document.getElementById('ticket-subject').value = '';
-    document.getElementById('ticket-desc').value = '';
-
-    renderTickets();
+    currentUser.email = document.getElementById('auth-email').value;
+    localStorage.setItem('rootify_user', JSON.stringify(currentUser));
+    updateUserUI();
+    showPage('chat');
 }
 
-function renderTickets() {
-    const container = document.getElementById('ticket-list');
-    if (!container) return;
-    container.innerHTML = '';
-
-    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
-
-    // L'Admin voit tout, l'utilisateur normal ne voit que ses propres tickets
-    if (currentUser.role !== 'admin') {
-        tickets = tickets.filter(t => t.user === currentUser.email);
-    }
-
-    if (tickets.length === 0) {
-        container.innerHTML = '<p style="color:#8b949e;">Aucun ticket ouvert.</p>';
-        return;
-    }
-
-    tickets.reverse().forEach(t => {
-        const item = document.createElement('div');
-        item.className = 'ticket-item';
-        item.onclick = () => openTicketDetail(t.id);
-        
-        const badgeClass = t.status.toLowerCase().replace(' ', '-');
-        item.innerHTML = `
-            <div>
-                <strong>#${t.id} - ${t.subject}</strong>
-                <br><small style="color:#8b949e;">Par: ${t.user}</small>
-            </div>
-            <span class="badge ${badgeClass}">${t.status}</span>
-        `;
-        container.appendChild(item);
-    });
-}
-
-function openTicketDetail(id) {
-    currentTicketId = id;
-    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
-    let ticket = tickets.find(t => t.id === id);
-
-    if (!ticket) return;
-
-    document.getElementById('detail-ticket-id').textContent = ticket.id;
-    document.getElementById('detail-ticket-subject').textContent = ticket.subject;
-    document.getElementById('detail-ticket-user').textContent = ticket.user;
-    
-    const statusSelect = document.getElementById('detail-ticket-status');
-    statusSelect.value = ticket.status || 'En attente';
-
-    renderTicketMessages(ticket);
-    showPage('ticket-detail');
-}
-
-function renderTicketMessages(ticket) {
-    const box = document.getElementById('ticket-messages-box');
-    box.innerHTML = '';
-
-    ticket.messages.forEach(m => {
-        const div = document.createElement('div');
-        div.style.padding = '8px 12px';
-        div.style.borderRadius = '6px';
-        div.style.backgroundColor = m.sender === currentUser.email ? '#ff6b0022' : '#21262d';
-        div.style.border = '1px solid #30363d';
-        div.innerHTML = `<strong>${m.sender} :</strong> ${m.text}`;
-        box.appendChild(div);
-    });
-    box.scrollTop = box.scrollHeight;
-}
-
-function updateTicketStatus() {
-    if (!currentTicketId) return;
-
-    const newStatus = document.getElementById('detail-ticket-status').value;
-    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
-
-    const index = tickets.findIndex(t => t.id === currentTicketId);
-    if (index !== -1) {
-        tickets[index].status = newStatus;
-        localStorage.setItem('rootify_tickets', JSON.stringify(tickets));
-        renderTickets();
-    }
-}
-
-function addTicketReply() {
-    const input = document.getElementById('ticket-reply-input');
-    const text = input.value.trim();
-    if (!text || !currentTicketId) return;
-
-    let tickets = JSON.parse(localStorage.getItem('rootify_tickets')) || [];
-    const index = tickets.findIndex(t => t.id === currentTicketId);
-
-    if (index !== -1) {
-        tickets[index].messages.push({ sender: currentUser.email, text: text });
-        localStorage.setItem('rootify_tickets', JSON.stringify(tickets));
-        renderTicketMessages(tickets[index]);
-        input.value = '';
-    }
-}
-
-function handleTicketReplyKeyPress(e) {
-    if (e.key === 'Enter') addTicketReply();
-}
-
-// ==========================================
-// 💳 ACCES VIP & SIMULATION D'ACHAT
-// ==========================================
-function openCheckoutModal() {
-    document.getElementById('checkout-modal').style.display = 'flex';
-}
-
-function closeCheckoutModal() {
-    document.getElementById('checkout-modal').style.display = 'none';
-}
-
+function openCheckoutModal() { document.getElementById('checkout-modal').style.display = 'flex'; }
+function closeCheckoutModal() { document.getElementById('checkout-modal').style.display = 'none'; }
 function processTestPayment(e) {
     e.preventDefault();
     currentUser.isVip = true;
     localStorage.setItem('rootify_user', JSON.stringify(currentUser));
-    updateUserUI();
     closeCheckoutModal();
-    alert("🎉 Bravo ! Votre compte est désormais VIP (Mode Test). Merci de votre soutien !");
+    alert("🎉 Statut VIP Activé !");
 }
