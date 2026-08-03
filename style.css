@@ -75,6 +75,7 @@ body {
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
+    text-decoration: none;
 }
 
 .btn-nav-admin {
@@ -139,12 +140,12 @@ body {
 
 input { background-color: #1a1a1e; border: 1px solid #2d2d35; color: #fff; padding: 12px; border-radius: 8px; width: 100%; }
 
-/* SUPPORT WIDGET (FIXED) */
+/* SUPPORT WIDGET */
 .support-widget { position: fixed; bottom: 25px; right: 25px; z-index: 9999; }
 .widget-toggle-btn { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #ff5500, #e04400); border: none; color: white; font-size: 1.6rem; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 85, 0, 0.5); display: flex; align-items: center; justify-content: center; }
 
 .support-window { display: none; position: absolute; bottom: 75px; right: 0; width: 340px; height: 480px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-direction: column; overflow: hidden; color: #333; }
-.support-window.active { display: flex !important; }
+.support-window.show { display: flex !important; }
 
 .support-header { background: linear-gradient(135deg, #ff5500, #d94800); padding: 18px; color: white; text-align: center; }
 .support-tabs { background-color: rgba(0,0,0,0.15); display: inline-flex; padding: 4px; border-radius: 20px; margin-bottom: 10px; }
@@ -161,7 +162,7 @@ input { background-color: #1a1a1e; border: 1px solid #2d2d35; color: #fff; paddi
 .btn-send { background-color: #ff5500; color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 .support-branding { text-align: center; font-size: 0.7rem; color: #999; padding-bottom: 6px; background-color: #fff; }
 
-/* MODAL FIX */
+/* MODAL & CARDS */
 .card { background-color: #141417; border: 1px solid #242429; border-radius: 12px; padding: 30px; }
 .pricing-card { background-color: #141417; border: 2px solid #ff5500; border-radius: 16px; padding: 35px; max-width: 420px; margin: 40px auto; text-align: center; }
 .pricing-card .price { font-size: 3rem; font-weight: 900; color: #ff5500; margin: 15px 0; }
@@ -171,7 +172,7 @@ input { background-color: #1a1a1e; border: 1px solid #2d2d35; color: #fff; paddi
 .full-width { width: 100%; }
 
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000; }
-.modal.active { display: flex !important; }
+.modal.show { display: flex !important; }
 .modal-content { background: #141417; border: 1px solid #242429; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; position: relative; }
 .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; color: #aaa; }
 .flex-row { display: flex; gap: 10px; }
