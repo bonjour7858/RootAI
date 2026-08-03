@@ -21,7 +21,7 @@
         </nav>
         <div class="nav-actions">
             <a id="link-auth" class="btn-nav-secondary" onclick="showPage('auth')">Connexion</a>
-            <button class="btn-nav-admin" onclick="loginAsAdmin()">Admin</button>
+            <button class="btn-nav-admin" onclick="openAdminPinModal()">🔑 Admin</button>
         </div>
     </header>
 
@@ -110,11 +110,24 @@
         <section id="page-admin" class="page">
             <div class="card">
                 <h2>Panneau d'Administration 👑</h2>
-                <p>Gestion globale du site Rootify :</p>
-                <div style="margin-top: 20px;">
-                    <p><strong>Utilisateur connecté :</strong> <span id="admin-user-email">admin@rootify.com</span></p>
-                    <p><strong>Statut Serveur IA :</strong> <span style="color:#10b981;">● Opérationnel</span></p>
-                    <button onclick="clearAllData()" class="btn-danger" style="margin-top:20px; padding:10px 15px;">Réinitialiser les données locales</button>
+                <p>Gestion globale de Rootify :</p>
+                
+                <div class="admin-stats-grid" style="margin-top:20px;">
+                    <div class="stat-box">
+                        <p><strong>Utilisateur connecté :</strong> <span id="admin-user-email">admin@rootify.com</span></p>
+                        <p><strong>Statut Serveur IA :</strong> <span style="color:#10b981;">● Opérationnel</span></p>
+                        <button onclick="clearAllData()" class="btn-danger" style="margin-top:15px; padding:8px 12px;">Réinitialiser toutes les données</button>
+                    </div>
+                </div>
+
+                <hr style="border:0; border-top:1px solid #242429; margin: 25px 0;">
+
+                <!-- SECTION SUPPORT DANS L'ADMIN -->
+                <h3>📩 Centre des Messages Support (Live)</h3>
+                <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Retrouvez ici tous les messages envoyés via la bulle de support :</p>
+                
+                <div id="admin-support-list" class="admin-support-container">
+                    <!-- Rempli en JS -->
                 </div>
             </div>
         </section>
@@ -165,6 +178,17 @@
                 </div>
                 <button type="submit" class="btn-main-orange full-width" style="margin-top:15px;">Payer 3,00 € (Mode Test)</button>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL CODE PIN ADMIN -->
+    <div id="admin-pin-modal" class="modal">
+        <div class="modal-content" style="max-width:320px; text-align:center;">
+            <span class="close-btn" onclick="closeAdminPinModal()">&times;</span>
+            <h3>🔐 Accès Sécurisé</h3>
+            <p style="margin:10px 0; font-size:0.85rem; color:#aaa;">Entrez le code PIN Administrateur (Ex: <strong>1234</strong>) :</p>
+            <input type="password" id="admin-pin-input" placeholder="Code PIN (1234)" style="text-align:center; font-size:1.2rem; letter-spacing:5px; margin-bottom:15px;" maxlength="8">
+            <button onclick="verifyAdminPin()" class="btn-main-orange full-width">Valider</button>
         </div>
     </div>
 
