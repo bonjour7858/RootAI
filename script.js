@@ -1,3 +1,4 @@
+// URL de ton Cloudflare Worker
 const WORKER_URL = 'https://rootai.bonjour7858.workers.dev/';
 
 let currentUser = JSON.parse(localStorage.getItem('rootify_user')) || { email: 'invité@rootify.com', role: 'user', isVip: false };
@@ -8,31 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
     renderChatHistoryList();
     startNewChat();
 
-    // Fix Clics Support
-    const supportToggle = document.getElementById('widget-toggle-btn');
-    const supportWindow = document.getElementById('support-window');
-    if (supportToggle && supportWindow) {
-        supportToggle.addEventListener('click', () => {
-            supportWindow.classList.toggle('active');
-        });
-    }
+    // Touche Entrée sur le tchat principal
+    document.getElementById('user-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
 
-    // Fix Modal Achat
-    const openModalBtn = document.getElementById('btn-open-modal');
-    const closeModalBtn = document.getElementById('btn-close-modal');
-    const checkoutModal = document.getElementById('checkout-modal');
-
-    if (openModalBtn && checkoutModal) {
-        openModalBtn.addEventListener('click', () => {
-            checkoutModal.classList.add('active');
-        });
-    }
-
-    if (closeModalBtn && checkoutModal) {
-        closeModalBtn.addEventListener('click', () => {
-            checkoutModal.classList.remove('active');
-        });
-    }
+    // Touche Entrée sur le support
+    document.getElementById('widget-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendWidgetMessage();
+    });
 });
 
 // Navigation inter-pages
@@ -52,26 +37,12 @@ function focusChatInput() {
     document.getElementById('user-input').focus();
 }
 
-// Activer le mode Admin
-function loginAsAdmin() {
-    currentUser = { email: 'admin@rootify.com', role: 'admin', isVip: true };
-    localStorage.setItem('rootify_user', JSON.stringify(currentUser));
-    updateUserUI();
-    showPage('admin');
-    alert("👑 Connecté en tant qu'Administrateur ! L'onglet Admin est actif.");
+// Widget Support Flottant
+function toggleSupportWidget() {
+    const win = document.getElementById('support-window');
+    win.classList.toggle('show');
 }
 
-function updateUserUI() {
-    const authLink = document.getElementById('link-auth');
-    const adminLink = document.getElementById('link-admin');
-    
-    if (authLink) authLink.textContent = currentUser.email.includes('invité') ? 'Connexion' : currentUser.email;
-    if (adminLink && currentUser.role === 'admin') {
-        adminLink.classList.remove('hidden');
-    }
-}
-
-// Support Widget
 function sendWidgetMessage() {
     const input = document.getElementById('widget-input');
     const text = input.value.trim();
@@ -89,17 +60,52 @@ function sendWidgetMessage() {
     setTimeout(() => {
         const botMsg = document.createElement('div');
         botMsg.className = 'support-msg bot-msg';
-        botMsg.textContent = "Support Rootify: Nous avons bien reçu votre demande !";
+        botMsg.textContent = "Support Rootify: Merci ! Notre équipe vous répondra très rapidement.";
         box.appendChild(botMsg);
         box.scrollTop = box.scrollHeight;
-    }, 1000);
+    }, 800);
 }
 
-function handleWidgetKeyPress(e) {
-    if (e.key === 'Enter') sendWidgetMessage();
+// Modal Achat Test
+function openCheckoutModal() {
+    document.getElementById('checkout-modal').classList.add('show');
 }
 
-// Moteur de Chat IA
+function closeCheckoutModal() {
+    document.getElementById('checkout-modal').classList.remove('show');
+}
+
+function processTestPayment(e) {
+    e.preventDefault();
+    currentUser.isVip = true;
+    localStorage.setItem('rootify_user', JSON.stringify(currentUser));
+    closeCheckoutModal();
+    alert("🎉 Simulation d'achat réussie ! Statut VIP activé.");
+}
+
+// Mode Admin
+function loginAsAdmin() {
+    currentUser = { email: 'admin@rootify.com', role: 'admin', isVip: true };
+    localStorage.setItem('rootify_user', JSON.stringify(currentUser));
+    updateUserUI();
+    showPage('admin');
+    alert("👑 Connecté en Admin ! Le panneau d'administration est ouvert.");
+}
+
+function updateUserUI() {
+    const authLink = document.getElementById('link-auth');
+    const adminLink = document.getElementById('link-admin');
+    const adminEmail = document.getElementById('admin-user-email');
+
+    if (authLink) authLink.textContent = currentUser.email.includes('invité') ? 'Connexion' : currentUser.email;
+    if (adminEmail) adminEmail.textContent = currentUser.email;
+
+    if (adminLink && currentUser.role === 'admin') {
+        adminLink.classList.remove('hidden');
+    }
+}
+
+// Moteur IA Textuel (Connecté à ton API Worker Cloudflare)
 function startNewChat() {
     currentChatId = Date.now().toString();
     const chatBox = document.getElementById('chat-box');
@@ -107,12 +113,12 @@ function startNewChat() {
     
     let history = getChatsFromStorage();
     if (!history[currentChatId]) {
-        history[currentChatId] = { title: 'Nouvelle discussion', messages: [] };
+        history[currentChatId] = { title: 'Nouvelle conversation', messages: [] };
         localStorage.setItem('rootify_chats', JSON.stringify(history));
     }
 
     renderChatHistoryList();
-    addBotMessageUI("Bonjour ! Je suis Rootify. Écris ton message ci-dessous et clique sur Générer !");
+    addBotMessageUI("Bonjour ! Je suis l'IA Rootify. Écris ton message ci-dessous et clique sur Générer !");
 }
 
 async function sendMessage() {
@@ -126,7 +132,7 @@ async function sendMessage() {
 
     let history = getChatsFromStorage();
     if (history[currentChatId] && history[currentChatId].messages.length <= 2) {
-        history[currentChatId].title = text.substring(0, 20) + '...';
+        history[currentChatId].title = text.substring(0, 18) + '...';
         localStorage.setItem('rootify_chats', JSON.stringify(history));
         renderChatHistoryList();
     }
@@ -155,21 +161,22 @@ async function sendMessage() {
         const loader = document.getElementById('loading-indicator');
         if (loader) chatBox.removeChild(loader);
 
-        if (data.choices && data.choices[0]) {
+        if (data.choices && data.choices[0] && data.choices[0].message) {
             const aiReply = data.choices[0].message.content;
             addBotMessageUI(aiReply);
             saveChatMessage('bot', aiReply);
+        } else if (data.response) {
+            addBotMessageUI(data.response);
+            saveChatMessage('bot', data.response);
         } else {
-            addBotMessageUI("Réponse reçue, mais format invalide.");
+            addBotMessageUI("Réponse reçue du Worker, mais aucun texte lisible trouvé.");
         }
     } catch (error) {
         const loader = document.getElementById('loading-indicator');
         if (loader) chatBox.removeChild(loader);
-        addBotMessageUI("❌ Connexion au Worker échouée (Vérifiez votre URL Worker).");
+        addBotMessageUI("❌ Erreur de connexion au Worker Cloudflare. Vérifiez les règles CORS de votre Worker.");
     }
 }
-
-function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
 
 function addUserMessageUI(text) {
     const box = document.getElementById('chat-box');
@@ -237,14 +244,22 @@ function deleteChat(id, e) {
     else renderChatHistoryList();
 }
 
+// Moteur IA Image
 function triggerImageGen() {
-    const prompt = document.getElementById('img-prompt-input').value;
+    const prompt = document.getElementById('img-prompt-input').value.trim();
     const resBox = document.getElementById('image-result');
-    if (!prompt) return;
-    resBox.innerHTML = '<p style="margin-top:15px; color:#ff5500;">🎨 Génération visuelle en cours...</p>';
+    if (!prompt) return alert("Veuillez entrer une description !");
+    
+    resBox.innerHTML = '<p style="margin-top:15px; color:#ff5500; font-weight:bold;">🎨 Génération visuelle en cours...</p>';
     setTimeout(() => {
-        resBox.innerHTML = `<img src="https://picsum.photos/600/400?random=${Math.floor(Math.random()*1000)}" style="max-width:100%; border-radius:10px; margin-top:15px;" alt="Image générée">`;
-    }, 1200);
+        const randomId = Math.floor(Math.random() * 1000);
+        resBox.innerHTML = `
+            <div style="margin-top:15px;">
+                <img src="https://picsum.photos/seed/${randomId}/600/400" style="max-width:100%; border-radius:12px; border: 2px solid #ff5500;" alt="Image IA">
+                <p style="margin-top:5px; font-size:0.85rem; color:#aaa;">Image générée pour : "${prompt}"</p>
+            </div>
+        `;
+    }, 1000);
 }
 
 function handleAuth(e) {
@@ -253,14 +268,6 @@ function handleAuth(e) {
     localStorage.setItem('rootify_user', JSON.stringify(currentUser));
     updateUserUI();
     showPage('chat');
-}
-
-function processTestPayment(e) {
-    e.preventDefault();
-    currentUser.isVip = true;
-    localStorage.setItem('rootify_user', JSON.stringify(currentUser));
-    document.getElementById('checkout-modal').classList.remove('active');
-    alert("🎉 Statut VIP Activé avec succès ! Merci de ton soutiens.");
 }
 
 function clearAllData() {
