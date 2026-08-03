@@ -3,31 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rootify - IA & Support</title>
+    <title>Rootify - IA & Innovation</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Barre de Navigation -->
+    <!-- Barre de Navigation Style Paladium -->
     <header class="navbar">
-        <div class="logo" onclick="showPage('chat')">🤖 Rootify</div>
+        <div class="logo" onclick="showPage('chat')">
+            <span class="logo-icon">🤖</span> Rootify
+        </div>
         <nav class="nav-links">
-            <a id="link-chat" class="nav-btn active" onclick="showPage('chat')">💬 Chat IA</a>
-            <a id="link-image" class="nav-btn" onclick="showPage('image')">🎨 Image HD</a>
-            <a id="link-support" class="nav-btn" onclick="showPage('support')">🎫 Support</a>
-            <a id="link-premium" class="nav-btn" onclick="showPage('premium')">⭐ Premium</a>
-            <a id="link-auth" class="nav-btn" onclick="showPage('auth')">Connexion</a>
+            <a id="link-chat" class="nav-btn active" onclick="showPage('chat')">IA Textuel</a>
+            <a id="link-image" class="nav-btn" onclick="showPage('image')">IA Image</a>
+            <a id="link-premium" class="nav-btn" onclick="showPage('premium')">Premium</a>
         </nav>
-        <div id="user-badge" class="user-badge">Invité</div>
+        <div class="nav-actions">
+            <a id="link-auth" class="btn-nav-secondary" onclick="showPage('auth')">Connexion</a>
+            <button class="btn-nav-admin" onclick="loginAsAdmin()">Admin</button>
+        </div>
     </header>
 
     <main class="container">
 
-        <!-- ================= PAGE CHAT ================= -->
+        <!-- ================= PAGE CHAT IA (TEXTUEL) ================= -->
         <section id="page-chat" class="page active-page">
+            <div class="hero-header">
+                <span class="badge-tag">REJOIGNEZ ROOTIFY</span>
+                <h1>Commencez Votre Aventure !</h1>
+                <p>Rootify est la plateforme IA tout-en-un nouvelle génération. Générez du texte, des idées et des visuels en un instant !</p>
+                <div class="hero-buttons">
+                    <button class="btn-main-orange" onclick="focusChatInput()">▶ Générer</button>
+                    <button class="btn-main-dark" onclick="showPage('premium')">En savoir plus</button>
+                </div>
+            </div>
+
             <div class="chat-layout">
                 <aside class="chat-sidebar">
-                    <button onclick="startNewChat()" class="btn-primary full-width">+ Nouvelle conversation</button>
+                    <button onclick="startNewChat()" class="btn-main-orange full-width">+ Nouvelle conversation</button>
                     <h3>Historique</h3>
                     <div id="chat-history-list" class="history-list"></div>
                 </aside>
@@ -37,96 +50,46 @@
                         <span class="avatar">🤖</span>
                         <div>
                             <strong>Rootify Assistant</strong> <span class="online-dot">● En ligne</span>
-                            <p id="root-status">« Pose-moi une question ou demande une création ! »</p>
+                            <p id="root-status">« Poser votre question et cliquez sur Générer ! »</p>
                         </div>
                     </div>
 
                     <div id="chat-box" class="chat-box"></div>
 
                     <div class="chat-input-area">
-                        <input type="text" id="user-input" placeholder="Écris ton message ici..." onkeypress="handleKeyPress(event)">
-                        <button onclick="sendMessage()" class="btn-primary">Envoyer</button>
+                        <input type="text" id="user-input" placeholder="Écris ton prompt ici..." onkeypress="handleKeyPress(event)">
+                        <button onclick="sendMessage()" class="btn-main-orange">Générer</button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= PAGE GENERATION D'IMAGE ================= -->
+        <!-- ================= PAGE IA IMAGE ================= -->
         <section id="page-image" class="page">
             <div class="card center-content">
                 <h2>Générateur d'Images IA 🎨</h2>
-                <p>Décris l'image que tu souhaites générer :</p>
+                <p>Décrivez ce que vous souhaitez voir apparaître :</p>
                 <div class="input-group">
-                    <input type="text" id="img-prompt-input" placeholder="Ex: Un lion cyberpunk dans la jungle, 8k...">
-                    <button onclick="triggerImageGen()" class="btn-primary">Générer</button>
+                    <input type="text" id="img-prompt-input" placeholder="Ex: Un chevalier futuriste style Paladium en 8K...">
+                    <button onclick="triggerImageGen()" class="btn-main-orange">Générer</button>
                 </div>
                 <div id="image-result" class="image-result-box"></div>
             </div>
         </section>
 
-        <!-- ================= PAGE SUPPORT ================= -->
-        <section id="page-support" class="page">
-            <h2>Centre de Support 🎫</h2>
-            
-            <div class="card">
-                <h3>Ouvrir un ticket</h3>
-                <form onsubmit="createTicket(event)" class="ticket-form">
-                    <input type="text" id="ticket-subject" placeholder="Sujet de votre demande" required>
-                    <select id="ticket-priority">
-                        <option value="Basse">Priorité : Basse</option>
-                        <option value="Moyenne">Priorité : Moyenne</option>
-                        <option value="Haute">Priorité : Haute</option>
-                    </select>
-                    <textarea id="ticket-desc" placeholder="Description de votre problème..." required></textarea>
-                    <button type="submit" class="btn-primary">Ouvrir le ticket</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h3>Vos Tickets</h3>
-                <div id="ticket-list" class="ticket-list-container"></div>
-            </div>
-        </section>
-
-        <!-- ================= PAGE DETAIL TICKET ================= -->
-        <section id="page-ticket-detail" class="page">
-            <button onclick="showPage('support')" class="btn-secondary">← Retour aux tickets</button>
-            <div class="card">
-                <h2>Ticket #<span id="detail-ticket-id"></span> - <span id="detail-ticket-subject"></span></h2>
-                <p>Auteur : <strong id="detail-ticket-user"></strong></p>
-                
-                <div class="status-selector">
-                    <label for="detail-ticket-status">Statut du ticket :</label>
-                    <select id="detail-ticket-status" onchange="updateTicketStatus()">
-                        <option value="En attente">En attente</option>
-                        <option value="En cours">En cours</option>
-                        <option value="Résolu">Résolu</option>
-                        <option value="Fermé">Fermé</option>
-                    </select>
-                </div>
-
-                <div id="ticket-messages-box" class="messages-box"></div>
-
-                <div class="chat-input-area">
-                    <input type="text" id="ticket-reply-input" placeholder="Écrire une réponse..." onkeypress="handleTicketReplyKeyPress(event)">
-                    <button onclick="addTicketReply()" class="btn-primary">Répondre</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ================= PAGE PREMIUM & DON ================= -->
+        <!-- ================= PAGE PREMIUM ================= -->
         <section id="page-premium" class="page">
             <div class="pricing-card">
                 <h2>Pass VIP & Soutien ⭐</h2>
                 <div class="price">3€ <span>/ mois</span></div>
                 <ul>
-                    <li>✅ Accès prioritaire à Rootify IA</li>
-                    <li>✅ Génération d'images haute définition</li>
-                    <li>✅ Support client ultra-rapide</li>
-                    <li>✅ Soutien direct au développement</li>
+                    <li>✅ Accès prioritaire à Rootify Llama 3</li>
+                    <li>✅ Génération d'images ultra rapides</li>
+                    <li>✅ Support VIP direct</li>
+                    <li>✅ Soutien au projet</li>
                 </ul>
                 <div class="action-buttons-group">
-                    <button onclick="openCheckoutModal()" class="btn-primary full-width">Tester la souscription (Test)</button>
+                    <button onclick="openCheckoutModal()" class="btn-main-orange full-width">Tester la souscription (Test)</button>
                     <a href="https://www.leetchi.com/" target="_blank" class="btn-leetchi full-width">🎁 Soutenir sur Leetchi</a>
                 </div>
             </div>
@@ -136,22 +99,60 @@
         <section id="page-auth" class="page">
             <div class="card auth-card">
                 <h2>Connexion / Inscription</h2>
-                <p class="auth-hint">Utilise <strong>admin@rootai.com</strong> pour tester le rôle Admin !</p>
+                <p class="auth-hint">Connectez-vous pour sauvegarder votre historique.</p>
                 <form onsubmit="handleAuth(event)">
                     <input type="email" id="auth-email" placeholder="Votre adresse email" required>
-                    <button type="submit" class="btn-primary full-width">Se connecter</button>
+                    <button type="submit" class="btn-main-orange full-width">Se connecter</button>
                 </form>
             </div>
         </section>
 
     </main>
 
-    <!-- ================= MODAL TEST DE PAIEMENT ================= -->
+    <!-- ================= WIDGET SUPPORT FLOTTANT (STYLE CRISP / PALADIUM) ================= -->
+    <div id="support-widget" class="support-widget">
+        <!-- Bulle d'ouverture du Widget -->
+        <button id="widget-toggle-btn" class="widget-toggle-btn" onclick="toggleSupportWidget()">
+            💬
+        </button>
+
+        <!-- Fenêtre du Support -->
+        <div id="support-window" class="support-window">
+            <div class="support-header">
+                <div class="support-tabs">
+                    <button class="tab-btn active">💬 Messages</button>
+                    <button class="tab-btn">📚 Articles</button>
+                </div>
+                <div class="support-team">
+                    <div class="avatars">
+                        <span class="avatar-img">🤖</span>
+                        <span class="avatar-img">👑</span>
+                        <span class="avatar-icon">💬</span>
+                    </div>
+                    <h4>Discuter avec le support</h4>
+                    <p class="support-status">⏱️ Réponse rapide en direct</p>
+                </div>
+            </div>
+
+            <div id="widget-chat-box" class="support-body">
+                <div class="support-msg bot-msg">
+                    Comment puis-je vous aider à propos de Rootify ?
+                </div>
+            </div>
+
+            <div class="support-footer">
+                <input type="text" id="widget-input" placeholder="Entrez votre message..." onkeypress="handleWidgetKeyPress(event)">
+                <button onclick="sendWidgetMessage()" class="btn-send">➢</button>
+            </div>
+            <div class="support-branding">Propulsé par <strong>Rootify Support</strong></div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL PAIEMENT TEST ================= -->
     <div id="checkout-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeCheckoutModal()">&times;</span>
             <h3>💳 Simulation d'Achat VIP</h3>
-            <p>Ceci est un environnement de test sécurisé.</p>
             <form onsubmit="processTestPayment(event)">
                 <input type="text" placeholder="Nom sur la carte" value="Jean Dupont" required>
                 <input type="text" placeholder="Numéro de carte (Factice)" value="4242 •••• •••• 4242" required>
@@ -159,7 +160,7 @@
                     <input type="text" placeholder="MM/AA" value="12/28" required>
                     <input type="text" placeholder="CVC" value="123" required>
                 </div>
-                <button type="submit" class="btn-primary full-width">Payer 3,00 € (Mode Test)</button>
+                <button type="submit" class="btn-main-orange full-width">Payer 3,00 € (Mode Test)</button>
             </form>
         </div>
     </div>
